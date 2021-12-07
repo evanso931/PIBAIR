@@ -33,6 +33,10 @@ int can_mesage_length = 9;
 double yaw = 0;
 double pitch = 0;
 double roll = 0;
+const int M1A1 = 10;
+const int M1A2 = 11;
+int M1PWM1;
+int M1PWM2;
 
 void setup(void) {
 
@@ -125,6 +129,7 @@ void loop() {
     delay(10);
   }
 
+  //motor_drive();
   digitalWrite(ledPin, !digitalRead(ledPin));
 }
 
@@ -197,4 +202,12 @@ void read_can_bus(){
 
     Serial.print("  TS: "); Serial.println(msg.timestamp);
   }
+}
+
+void motor_drive(){
+  
+  //println(pwm1);
+  analogWrite(M1A1, 0);
+  analogWrite(M1A1, 250); //Sets speed variable via PWM
+
 }
