@@ -3,6 +3,10 @@
 		{
 			"name": "PIBAIR Tether Module",
 			"path": "PIBAIR Tether Module"
+		},
+		{
+			"name": "PIBAIR Base Module",
+			"path": "PIBAIR Base Module"
 		}
 	]
 }

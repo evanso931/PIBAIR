@@ -1,10 +1,10 @@
 /** PIBAIR Tether Microcontroller Code
- * Main file for code that runs on the teency microcontroller that is on the tether
+ * Main file for the code that runs on the teency microcontroller that is on the tether
  * author Benjamin Evans, University of Leeds
  * date Dec 2021
  */ 
 
-//Libarys
+//Libraries
 #include <Arduino.h>
 #include <FlexCAN_T4.h>
 #include "ICM_20948.h"
@@ -17,7 +17,7 @@
 //Object Declarations 
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> can1;
 FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> can2;
-CAN_message_t msg, msg_motor;
+CAN_message_t msg;
 ICM_20948_I2C myICM;
 
 //Function Declarations 
@@ -37,6 +37,7 @@ const int M1A1 = 10;
 const int M1A2 = 11;
 int M1PWM1;
 int M1PWM2;
+
 
 void setup(void) {
 
@@ -73,7 +74,6 @@ void loop() {
   myICM.readDMPdataFromFIFO(&data);
 
   msg.len = can_mesage_length;
-  msg_motor.len = can_mesage_length;
   msg.id = 5;
  
   
@@ -117,9 +117,14 @@ void loop() {
       Serial.print(yaw, 1);
 
       // CAN messaging
-      imu_to_can_buf();
-      can1.write(msg);
-      can_buf_to_imu();
+
+      static uint32_t prev_ms = millis();
+      if (millis() > prev_ms + 25) {
+        imu_to_can_buf();
+        can1.write(msg);
+        can_buf_to_imu();
+        digitalWrite(ledPin, !digitalRead(ledPin));
+      }
     }
   }
   
@@ -130,7 +135,7 @@ void loop() {
   }
 
   //motor_drive();
-  digitalWrite(ledPin, !digitalRead(ledPin));
+  
 }
 
 void imu_to_can_buf(){
