@@ -1,89 +1,71 @@
 /** PIBAIR Base Microcontroller Code
- * Main file for the code that runs on the teency microcontroller that at the base of the tether plugged into the computer 
+ * Main file for the code that runs on the teency microcontroller in the cable encoder measurement device
  * author Benjamin Evans, University of Leeds
  * date Dec 2021
  */ 
 
 //Libraries
-#include <FlexCAN_T4.h>
+#include <Arduino.h>
 
 
 //Object Declarations 
-FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> can1;
-FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> can2;
-CAN_message_t msg, msg_motor;
 
 
-//Function Declarations 
-void read_can_bus();
-void can_buf_to_imu();
 
+//Function Declarations
+void wheelSpeed();
 
 //Variables
 const int ledPin = 13;
+const byte LeftEncoderpinA = 2;//A pin -> the interrupt pin 0 
+const byte LeftEncoderpinB = 5;//B pin -> the digital pin 4
+byte LeftEncoderPinALast;
+volatile long LeftDuration = 0;//the number of the pulses // Right
+boolean LeftDirection;//the rotation direction
+int interval = 0;
+volatile long PrevLeftDuration = 0;
 
 
 void setup(void) {
-  can1.begin();
-  can1.setBaudRate(125000);
-  can2.begin();
-  can2.setBaudRate(125000);
+  LeftDirection = true;//default -> Forward
+  pinMode(LeftEncoderpinB,INPUT);//  Left 
+  attachInterrupt(2, wheelSpeed, CHANGE);
 
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
 }
 
 void loop() {
-  
-if (can1.read(msg) ) {
-    Serial.print("CAN1"); 
-    Serial.print("MB: "); Serial.print(msg.mb);
-    Serial.print("  ID: 0x"); Serial.print(msg.id, HEX );
-    Serial.print("  EXT: "); Serial.print(msg.flags.extended );
-    Serial.print("  LEN: "); Serial.print(msg.len);
-    Serial.print(" DATA: ");
+  LeftDuration = LeftDuration - PrevLeftDuration;
+  PrevLeftDuration = LeftDuration;
+  Serial.print(-LeftDuration);
 
-    for (uint8_t i = 0; i < 9; i++ ) {
-      Serial.print(msg.buf[i]); Serial.print(" ");
-    }
- }
- if (can2.read(msg) ) {
-    Serial.print("CAN1"); 
-    Serial.print("MB: "); Serial.print(msg.mb);
-    Serial.print("  ID: 0x"); Serial.print(msg.id, HEX );
-    Serial.print("  EXT: "); Serial.print(msg.flags.extended );
-    Serial.print("  LEN: "); Serial.print(msg.len);
-    Serial.print(" DATA: ");
-
-    for (uint8_t i = 0; i < 9; i++ ) {
-      Serial.print(msg.buf[i]); Serial.print(" ");
-    }
- }
-
+  delay(10);
   digitalWrite(ledPin, !digitalRead(ledPin));
-  
-  can_buf_to_imu();
-
-  delay (500);
 }
 
-void can_buf_to_imu(){
-  float imu_values [3] = { };
 
-  for (int i = 0; i < 3; i++ ) {
-    if (msg.buf[i*3] == 1){
-    float decimal_minus = msg.buf[i*3+2];
-    imu_values[i] = (msg.buf[i*3+1]*-1) + decimal_minus/100;
-
-    }else {
-    float decimal_plus = msg.buf[i*3+2];
-    imu_values[i] = msg.buf[i*3+1] + decimal_plus/100;
+void wheelSpeed()
+{
+   int Lstate = digitalRead(LeftEncoderpinA);
+  if((LeftEncoderPinALast == LOW) && Lstate==HIGH)
+  {
+    int val = digitalRead(LeftEncoderpinB);
+    if(val == LOW && LeftDirection)
+    {
+      LeftDirection = false; //Reverse
+    }
+    else if(val == HIGH && !LeftDirection)
+    {
+      LeftDirection = true;  //Forward
     }
   }
-  Serial.print("roll = ");
-  Serial.print(imu_values[0]);
-  Serial.print(", pitch = ");
-  Serial.print(imu_values[1]);
-  Serial.print(", yaw = ");
-  Serial.println(imu_values[2]);
+  LeftEncoderPinALast = Lstate;
+
+  if(!LeftDirection)  {
+    LeftDuration--;
+  
+  }else  {
+    LeftDuration++;
+  }
 }

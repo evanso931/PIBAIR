@@ -7,6 +7,9 @@
 		{
 			"name": "PIBAIR Base Module",
 			"path": "PIBAIR Base Module"
+		},
+		{
+			"path": "PipeMapping"
 		}
 	]
 }
