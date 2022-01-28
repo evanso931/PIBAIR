@@ -127,8 +127,7 @@ void loop() {
     delay(10);
   }
   
-  
-  digitalWrite(ledPin, !digitalRead(ledPin));
+  //digitalWrite(ledPin, !digitalRead(ledPin));
 }
 
 void motor_drive(){
