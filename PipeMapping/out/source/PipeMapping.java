@@ -8,6 +8,7 @@ import processing.serial.*;
 import toxi.geom.*; 
 import toxi.processing.*; 
 import peasy.*; 
+import java.util.Iterator; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -33,20 +34,22 @@ public class PipeMapping extends PApplet {
 
 
 
+
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
 String[] split_data;
 Serial Port;  
 PeasyCam cam;
+Planes planes;
 RobotModel robot;
 
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
 int read_interval = 0;
 PVector cam_position;
-PVector[] points = new PVector[50];
-float angle_xy;
-float distance_xy;
+ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
+float angle_xy = 0;
+float distance_xy = 0;
 
 public void setup() {
   // Program Window
@@ -69,22 +72,25 @@ public void setup() {
   float aspect   = PApplet.parseFloat(width)/PApplet.parseFloat(height);  
   perspective(fov, aspect, nearClip, farClip); 
 
+  // Declare New Objects
   robot = new RobotModel();
+  planes = new Planes();
 }
 
 public void draw() {
   background(26, 28, 35);
-
+  
   read_serial();
-  draw_planes();
+  planes.draw_planes();
   robot.move_robot();
   robot.draw_robot();
-
-  // Vitual Camera position calcuation
+  
+  // Vitual Camera position calcuation for home button
   cam_position = new PVector(cam.getPosition()[0], cam.getPosition()[1], cam.getPosition()[2]);  
   angle_xy = degrees(atan2(cam_position.z, cam_position.x));  // camera XY angle from origin
   distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance())
 }
+
 
 public void read_serial(){
   // Reads Serial port data contaiing IMU and Encoder values
@@ -96,44 +102,7 @@ public void read_serial(){
       // Protects against null pointer eexception error, incase reads serial data incorrectly
       if(read_data != null){
         split_data = split(read_data, ' ');
-        /*
-        print(list[0]);
-        print(" ");
-        print(list[1]);
-        print(" ");
-        println(list[2]);
-        */
       }
-    }
-  }
-}
-
-public void draw_planes(){
-  // Position Planes to line up
-  rotateX(PI);
-  rotateY(PI/4);
-  translate(0,-40,0);
-  
-  // ZX Plane
-  stroke(0, 0, 255);
-  noFill();
-  plane();
-  
-  // ZY Plane 
-  stroke(0, 255, 0);
-  rotateY(HALF_PI);
-  plane();
-  
-  // XY Plane
-  stroke(255, 0, 0);
-  rotateX(HALF_PI);
-  plane();
-}
-
-public void plane() {
-  for (int y=0; y<=10; y++) {
-    for (int x=0; x<=10; x++) {
-      rect(10*x, 10*y, 10, 10);
     }
   }
 }
@@ -150,35 +119,89 @@ public void keyPressed(){
   // peasycam's rotations work around the subject:
   if(key=='p') cam.rotateY(radians(frameCount)/15);
 }
+class Planes {  
+  public
+
+    // Constructor
+    Planes(){}
+  
+    public void draw_planes(){
+        // Position Planes to line up
+        rotateX(PI);
+        rotateY(PI/4);
+        translate(0,-40,0);
+        
+        // ZX Plane
+        stroke(0, 0, 255);
+        noFill();
+        plane();
+        
+        // ZY Plane 
+        stroke(0, 255, 0);
+        rotateY(HALF_PI);
+        plane();
+        
+        // XY Plane
+        stroke(255, 0, 0);
+        rotateX(HALF_PI);
+        plane();
+    }
+
+  private
+  // Function prototypes ------------------------------------------
+    void plane() {
+        for (int y=0; y<=10; y++) {
+            for (int x=0; x<=10; x++) {
+                rect(10*x, 10*y, 10, 10);
+            }
+        }
+    }
+
+  // Variables ----------------------------------------------------
+   
+} 
 class RobotModel {  
   public
 
     // Constructor
-    RobotModel(){}
+    RobotModel(){
+        posisions.add(new PVector(x_position, y_position, z_position));
+    }
   
     public void draw_robot(){
         strokeWeight(2);
-        translate(x_position,  y_position,  z_position);
         fill(240, 240, 240, 240);
         stroke(240,240,240);
-        box(10, 10, 10);
+        
+        //println(x_position, " ", y_position, " ", z_position);
+        for(PVector p:posisions){
+            translate(p.x, p.y, p.z);
+            println(p.x, " ", p.y, " ",p.z);
+            box(10, 10, 10);
+        } 
     }
 
     public void move_robot(){
         if (split_data[3] == null){
         }else if(PApplet.parseFloat(split_data[3]) != 0){
             if(PApplet.parseFloat(split_data[1]) < -50){
+                posisions.add(new PVector(0,0,1));
                 z_position++;
             }else if(PApplet.parseFloat(split_data[1]) > 50){
+                posisions.add(new PVector(0,0,-1));
                 z_position--;
             }else if (PApplet.parseFloat(split_data[2]) < -45 && PApplet.parseFloat(split_data[2]) > -135) {
+                posisions.add(new PVector(0,1,0));
                 y_position++;
             }else if (PApplet.parseFloat(split_data[2]) > 45 && PApplet.parseFloat(split_data[2]) < 135) {
+                posisions.add(new PVector(0,-1,0));
                 y_position--;
-            }else if (PApplet.parseFloat(split_data[2]) < 45 && PApplet.parseFloat(split_data[2]) > -45) {
-                x_position--;
             }else if (PApplet.parseFloat(split_data[2]) > 135 || PApplet.parseFloat(split_data[2]) < -135) {
+                posisions.add(new PVector(1,0,0));
                 x_position++;
+            }else if (PApplet.parseFloat(split_data[2]) < 45 && PApplet.parseFloat(split_data[2]) > -45) {
+                posisions.add(new PVector(-1,0,0));
+                x_position--;
             }
         }
     }
@@ -188,6 +211,7 @@ class RobotModel {
 
 
   // Variables ----------------------------------------------------
+  ArrayList<PVector> posisions = new ArrayList<PVector>();
     float x_position = 95;
     float y_position = 95;
     float z_position = -5; 

@@ -10,21 +10,23 @@ import processing.serial.*;
 import toxi.geom.*;
 import toxi.processing.*;
 import peasy.*;
+import java.util.Iterator;
 
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
 String[] split_data;
 Serial Port;  
 PeasyCam cam;
+Planes planes;
 RobotModel robot;
 
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
 int read_interval = 0;
 PVector cam_position;
-PVector[] points = new PVector[50];
-float angle_xy;
-float distance_xy;
+ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
+float angle_xy = 0;
+float distance_xy = 0;
 
 void setup() {
   // Program Window
@@ -47,22 +49,25 @@ void setup() {
   float aspect   = float(width)/float(height);  
   perspective(fov, aspect, nearClip, farClip); 
 
+  // Declare New Objects
   robot = new RobotModel();
+  planes = new Planes();
 }
 
 void draw() {
   background(26, 28, 35);
-
+  
   read_serial();
-  draw_planes();
+  planes.draw_planes();
   robot.move_robot();
   robot.draw_robot();
-
-  // Vitual Camera position calcuation
+  
+  // Vitual Camera position calcuation for home button
   cam_position = new PVector(cam.getPosition()[0], cam.getPosition()[1], cam.getPosition()[2]);  
   angle_xy = degrees(atan2(cam_position.z, cam_position.x));  // camera XY angle from origin
   distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance())
 }
+
 
 void read_serial(){
   // Reads Serial port data contaiing IMU and Encoder values
@@ -74,44 +79,7 @@ void read_serial(){
       // Protects against null pointer eexception error, incase reads serial data incorrectly
       if(read_data != null){
         split_data = split(read_data, ' ');
-        /*
-        print(list[0]);
-        print(" ");
-        print(list[1]);
-        print(" ");
-        println(list[2]);
-        */
       }
-    }
-  }
-}
-
-void draw_planes(){
-  // Position Planes to line up
-  rotateX(PI);
-  rotateY(PI/4);
-  translate(0,-40,0);
-  
-  // ZX Plane
-  stroke(0, 0, 255);
-  noFill();
-  plane();
-  
-  // ZY Plane 
-  stroke(0, 255, 0);
-  rotateY(HALF_PI);
-  plane();
-  
-  // XY Plane
-  stroke(255, 0, 0);
-  rotateX(HALF_PI);
-  plane();
-}
-
-void plane() {
-  for (int y=0; y<=10; y++) {
-    for (int x=0; x<=10; x++) {
-      rect(10*x, 10*y, 10, 10);
     }
   }
 }
