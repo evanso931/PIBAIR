@@ -10,7 +10,7 @@ import processing.serial.*;
 import toxi.geom.*;
 import toxi.processing.*;
 import peasy.*;
-import java.util.Iterator;
+import processing.video.*;
 
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
@@ -19,6 +19,7 @@ Serial Port;
 PeasyCam cam;
 Planes planes;
 RobotModel robot;
+Capture video;
 
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
@@ -30,18 +31,17 @@ float distance_xy = 0;
 
 void setup() {
   // Program Window
-  size(500,500,OPENGL);
+  size(1920,1080,OPENGL);
   
-  rectMode(CORNERS);
-
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
   Port = new Serial(this, Serial.list()[4], 9600);
 
   // Virtual camera setting 
-  cam = new PeasyCam(this, 300);
-  cam.setMinimumDistance(50); // Zoom in with scroll distance 
+  cam = new PeasyCam(this, 500); // start zoom
+  //cam.lookAt(0,-40,0); // look coordinates
+  cam.setMinimumDistance(50); // min/max Zoom in with scroll distance 
   cam.setMaximumDistance(500); 
   float fov     = PI/4;  // field of view
   float nearClip = 1; // how close items go out field of view
@@ -52,22 +52,49 @@ void setup() {
   // Declare New Objects
   robot = new RobotModel();
   planes = new Planes();
+
+  // Setup external endoscope camera
+  String[] cameras = Capture.list();
+  video = new Capture(this, 640, 480, cameras[1], 30);
+  video.start();   
 }
 
 void draw() {
   background(26, 28, 35);
-  
+
   read_serial();
+
   planes.draw_planes();
   robot.move_robot();
   robot.draw_robot();
-  
+
+  cam.beginHUD();
+  //Mapping frame
+  strokeWeight(0);
+  stroke(26, 28, 35);
+  fill(26, 28, 35);
+  rect(0, 0, 1920, 340);
+
+  // PIBAIR Tital
+  pushMatrix();
+  translate(-20, -50, 0);
+  textSize(64);
+  fill(255, 255, 255);
+  text("PIBAR Control Panel", 40, 120);
+  popMatrix();
+
+  // External Endoscope Camera 
+  if (video.available() == true) {
+    video.read();
+  }
+  image(video, 1230 , 50); //video position
+  cam.endHUD();
+
   // Vitual Camera position calcuation for home button
   cam_position = new PVector(cam.getPosition()[0], cam.getPosition()[1], cam.getPosition()[2]);  
   angle_xy = degrees(atan2(cam_position.z, cam_position.x));  // camera XY angle from origin
-  distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance())
+  distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance()
 }
-
 
 void read_serial(){
   // Reads Serial port data contaiing IMU and Encoder values
