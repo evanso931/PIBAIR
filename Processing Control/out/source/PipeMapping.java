@@ -92,14 +92,11 @@ public void draw() {
   robot.draw_robot();
 
   cam.beginHUD();
-
   //Mapping frame
   strokeWeight(0);
   stroke(26, 28, 35);
   fill(26, 28, 35);
   rect(0, 0, 1920, 340);
-  stroke(255, 255,255);
-  rect(200, 200, 1920, 340);
 
   // PIBAIR Tital
   pushMatrix();

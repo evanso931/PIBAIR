@@ -1,0 +1,14 @@
+Tri-pipebot controller
+forward	all drive forward	1	BUTTON	Y	0	0.0	0.0
+back	all drive backwards	1	BUTTON	A	0	0.0	0.0
+rear_pitch_x	pitch of rear section x	3	SLIDER	rx	0	1.0	0.0
+rear_pitch_y	pitch of rear section y	3	SLIDER	ry	0	1.0	0.0
+front_pitch_x	pitch of front section x	3	SLIDER	x	0	1.0	0.0
+front_pitch_y	pitch of front section y	3	SLIDER	y	0	1.0	0.0
+rear_flip	flip direction of rear all	1	BUTTON	Right Thumb	0	0.0	0.0
+rear_drive	drives only the rear section	3	SLIDER	rz	0	1.0	0.0
+front_flip	flip direction of front all	1	BUTTON	Left Thumb	0	0.0	0.0
+front_drive	drives only the front section	3	SLIDER	z	0	1.0	0.0
+for_retract	tightens retraction	1	BUTTON	B	0	0.0	0.0
+back_retract	loosens retraction	1	BUTTON	X	0	0.0	0.0
+ret_toggle	toggles front/rear retraction	1	BUTTON	Unknown	0	0.0	0.0

@@ -3,7 +3,7 @@ class RobotModel {
     
     // Constructor
     RobotModel() {
-      posisions.add(new PVector(x_position, y_position, z_position));
+      positions.add(new PVector(x_position, y_position, z_position));
     }
     
     void draw_robot() {
@@ -12,7 +12,7 @@ class RobotModel {
       stroke(240,240,240);
     
       //println(x_position, " ", y_position, " ", z_position);
-      for (PVector p : posisions) {
+      for (PVector p : positions) {
         translate(p.x, p.y, p.z);
         //println(p.x, " ", p.y, " ",p.z);
         box(10, 10, 10);
@@ -23,22 +23,22 @@ class RobotModel {
       if (split_data[3] == null) {
       } else if (float(split_data[3]) != 0) {
         if (float(split_data[1]) < - 50) {
-          posisions.add(new PVector(0,0,1));
+          positions.add(new PVector(0,0,1));
           z_position++;
         } else if (float(split_data[1]) > 50) {
-          posisions.add(new PVector(0,0, -1));
+          positions.add(new PVector(0,0, -1));
           z_position--;
         } else if (float(split_data[2]) < - 45 && float(split_data[2]) > - 135) {
-          posisions.add(new PVector(0,1,0));
+          positions.add(new PVector(0,1,0));
           y_position++;
         } else if (float(split_data[2]) > 45 && float(split_data[2]) < 135) {
-          posisions.add(new PVector(0, -1,0));
+          positions.add(new PVector(0, -1,0));
           y_position--;
         } else if (float(split_data[2]) > 135 || float(split_data[2]) < - 135) {
-          posisions.add(new PVector(1,0,0));
+          positions.add(new PVector(1,0,0));
           x_position++;
         } else if (float(split_data[2]) < 45 && float(split_data[2]) > - 45) {
-          posisions.add(new PVector( -1,0,0));
+          positions.add(new PVector( -1,0,0));
           x_position--;
         }
       }
@@ -49,7 +49,7 @@ class RobotModel {
     
     
     //Variables ----------------------------------------------------
-    ArrayList<PVector> posisions = new ArrayList<PVector>();
+    ArrayList<PVector> positions = new ArrayList<PVector>();
     float x_position = 95;
     float y_position = 95;
     float z_position = -5; 

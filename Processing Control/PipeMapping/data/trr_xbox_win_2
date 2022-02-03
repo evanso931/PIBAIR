@@ -1,0 +1,14 @@
+ 
+forward	forward all	1	BUTTON	Button 3	0	0.0	0.0
+back	back	1	BUTTON	Button 0	0	0.0	0.0
+rear_pitch_x	rear_pitch_x	3	SLIDER	X Axis	0	1.0	0.0
+rear_pitch_y	rear_pitch_y	3	SLIDER	Y Axis	0	1.0	0.0
+front_pitch_x	front_pitch_x	3	SLIDER	X Rotation	0	1.0	0.0
+front_pitch_y	front_pitch_y	3	SLIDER	Y Rotation	0	1.0	0.0
+rear_flip	rear_flip	1	BUTTON	Button 4	0	0.0	0.0
+extend1	extend1	3	SLIDER	Z Axis	0	1.0	0.0
+front_flip	front_flip	1	BUTTON	Button 5	0	0.0	0.0
+for_retract	for_retract	1	BUTTON	Button 1	0	0.0	0.0
+back_retract	back_retract	1	BUTTON	Button 2	0	0.0	0.0
+ret_toggle	ret_toggle	1	BUTTON	Button 7	0	0.0	0.0
+state_sel	state_sel	2	HAT	cooliehat: Hat Switch	0	1.0	0.0

@@ -9,7 +9,7 @@
 			"path": "PIBAIR Base Module"
 		},
 		{
-			"path": "PipeMapping"
+			"path": "Processing Control\\PipeMapping"
 		}
 	]
 }
