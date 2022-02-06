@@ -63,7 +63,7 @@ void setup() {
 
   // Setup external endoscope camera
   String[] cameras = Capture.list();
-  video = new Capture(this, 480, 360, cameras[1], 30);
+  video = new Capture(this, 550, 413, cameras[1], 30);
   video.start();  
 
   //RobotControl Setup
@@ -111,29 +111,28 @@ void draw() {
   rect(0, 0, 1920, 340);
   popMatrix();
   
-  // fame
+  // frame
   translate(600, 200, 0);
   strokeWeight(3);
-  stroke(255, 255, 255);
+  stroke(46,48,62);
   noFill();
   rect(0, 0, 720, 640) ;
 
+  // endoscope camera frame
+  // fame
+  translate(740, 0, 0);
+  strokeWeight(3);0
+  stroke(46,48,62);
+  noFill();
+  rect(0, 0, 570, 433) ;
   
-  popMatrix();
-  
-  // PIBAIR Tital
-  pushMatrix();
-  translate(-20, -50, 0);
-  textSize(64);
-  fill(255, 255, 255);
-  //text("PIBAR Control Panel", 40, 120);
   popMatrix();
 
   // External Endoscope Camera 
   if (video.available() == true) {
     video.read();
   }
-  image(video, 1420 , 200); //video position
+  image(video, 1350 , 210); //video position
 
   control_hud_draw();
   
