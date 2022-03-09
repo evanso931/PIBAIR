@@ -166,8 +166,6 @@ void control_init() {
   //cont = control.getMatchedDevice("tri_pipebot");
   cont = control.getMatchedDevice("trr_xbox_win_2"); //windows controller
   
-  
-  
   if (cont == null) {
     println("not working");
     System.exit(-1);
@@ -447,7 +445,6 @@ ss1_butt = cp5.addButton("ss1_butt")
   //arduino.pinMode(led1, Arduino.OUTPUT);
  
 }
-
 
 
 public void getUserInput(){

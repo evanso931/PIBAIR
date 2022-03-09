@@ -8,14 +8,13 @@ class RobotModel {
     
     void draw_robot() {
       strokeWeight(2);
-      fill(0, 0, 0, 240);
-      stroke(240,240,240);
+      fill(0, 240, 0, 240);
+      stroke(0,240,0);
     
-      //println(x_position, " ", y_position, " ", z_position);
+      // Draw all the previous positions of robot to form a pipe shape
       for (PVector p : positions) {
         translate(p.x, p.y, p.z);
-        //println(p.x, " ", p.y, " ",p.z);
-        box(10, 10, 10);
+        sphere(5);
       } 
     }
     

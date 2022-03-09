@@ -7,6 +7,7 @@
 //Libraries
 #include <Arduino.h>
 #include "ICM_20948.h"
+#include <Firmata.h>
 
 //Definitions
 #define SERIAL_PORT Serial
@@ -20,6 +21,7 @@ ICM_20948_I2C myICM;
 //Function Declarations 
 void motor_drive();
 void wheelSpeed();
+void analogWriteCallback(byte pin, int value);
 
 //Variables
 const int ledPin = 13;
@@ -32,6 +34,7 @@ int M1PWM1 = 0;
 int M1PWM2 = 0;
 unsigned long CurrentMillis = 0;
 unsigned long PreviousMillis = 0;
+byte analogPin = 0;
 
 
 const byte LeftEncoderpinA = 23;//A pin -> the interrupt pin 0 
@@ -67,6 +70,11 @@ void setup(void) {
   LeftDirection = true;//default -> Forward
   pinMode(LeftEncoderpinB,INPUT);//  Left 
   attachInterrupt(23, wheelSpeed, CHANGE);
+
+  // Firmata setup for analogue control
+  Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
+  Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
+  Firmata.begin(57600);
 }
 
 
@@ -75,7 +83,18 @@ void loop() {
   myICM.readDMPdataFromFIFO(&data);
   CurrentMillis = millis();
 
-  if (CurrentMillis - PreviousMillis >= LOOPTIME) {
+  // From https://github.com/firmata/arduino#firmata-client-libraries
+  if(Firmata.available()){
+    while (Firmata.available()) {
+      Firmata.processInput();
+    }
+    // do one analogRead per loop, so if PC is sending a lot of
+    // analog write messages, we will only delay 1 analogRead
+    Firmata.sendAnalog(analogPin, analogRead(analogPin));
+    analogPin = analogPin + 1;
+    if (analogPin >= TOTAL_ANALOG_PINS) analogPin = 0;
+
+  }else if (CurrentMillis - PreviousMillis >= LOOPTIME) {
     PreviousMillis = CurrentMillis;  
     if((myICM.status == ICM_20948_Stat_Ok) || (myICM.status == ICM_20948_Stat_FIFOMoreDataAvail)) {
 
@@ -129,8 +148,7 @@ void loop() {
   {
     delay(10);
   }
-  
-  digitalWrite(ledPin, !digitalRead(ledPin));
+
 }
 
 void motor_drive(){
@@ -161,5 +179,13 @@ void wheelSpeed()
   
   }else  {
     LeftDuration++;
+  }
+}
+
+void analogWriteCallback(byte pin, int value)
+{
+  if (IS_PIN_PWM(pin)) {
+    pinMode(PIN_TO_DIGITAL(pin), OUTPUT);
+    analogWrite(PIN_TO_PWM(pin), value);
   }
 }

@@ -433,7 +433,7 @@ public void control_init() {
   println(Arduino.list());
   delay(500);
   try{
-  arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
+  arduino1 = new Arduino(this, Arduino.list()[4], 9600); // list 2 for windows
   //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
   }
   catch (Exception e){
@@ -706,7 +706,6 @@ ss1_butt = cp5.addButton("ss1_butt")
 }
 
 
-
 public void getUserInput(){
   
   // assign our float value
@@ -797,27 +796,6 @@ public void control_hud_draw(){
  // shapes on GUI
  
   pushMatrix();
-  /*
-  // module 1 box
-  if(man_override==false) { 
-    fill(#23F764);
-  } else if(state==2){
-    fill(128,128,110);
-  }else{
-    fill(#DEDEDE);
-  }
-  rect(260,35,160,210);
-  
-   // module 2 box
-  if(man_override==false) { 
-    fill(#23F764);
-  } else if(state==1){
-    fill(128,128,110);
-  }else{
-    fill(#DEDEDE);
-  }
-  rect(430,35,160,210);
-  */
   
   //manual override light
   if(man_override==false) { 
@@ -1540,14 +1518,13 @@ class RobotModel {
     
     public void draw_robot() {
       strokeWeight(2);
-      fill(0, 0, 0, 240);
-      stroke(240,240,240);
+      fill(0, 240, 0, 240);
+      stroke(0,240,0);
     
-      //println(x_position, " ", y_position, " ", z_position);
+      // Draw all the previous positions of robot to form a pipe shape
       for (PVector p : positions) {
         translate(p.x, p.y, p.z);
-        //println(p.x, " ", p.y, " ",p.z);
-        box(10, 10, 10);
+        sphere(5);
       } 
     }
     
