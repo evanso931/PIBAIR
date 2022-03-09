@@ -7,6 +7,7 @@ class Planes {
     void draw_planes(){
       strokeWeight(2);
       rectMode(CORNERS);
+      
       // Position Planes to line up
       rotateX(PI);
       rotateY(PI/4);

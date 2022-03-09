@@ -364,7 +364,7 @@ void control_init() {
          
   module1label = cp5.addTextlabel("label1")
         .setText("Module 1")
-        .setPosition(300,115+100)
+        .setPosition(290,115+100)
         //.setHeight(30)
         //.setSize(200, 40)
         //.setColorValue(0xffffff00)
@@ -373,7 +373,7 @@ void control_init() {
 
   module2label = cp5.addTextlabel("label2")
         .setText("Module 2")
-        .setPosition(300+170,115+100)
+        .setPosition(290+170,115+100)
         //.setHeight(30)
         //.setSize(200, 40)
         //.setColorValue(0xffffff00)
@@ -540,27 +540,6 @@ void control_hud_draw(){
  // shapes on GUI
  
   pushMatrix();
-  /*
-  // module 1 box
-  if(man_override==false) { 
-    fill(#23F764);
-  } else if(state==2){
-    fill(128,128,110);
-  }else{
-    fill(#DEDEDE);
-  }
-  rect(260,35,160,210);
-  
-   // module 2 box
-  if(man_override==false) { 
-    fill(#23F764);
-  } else if(state==1){
-    fill(128,128,110);
-  }else{
-    fill(#DEDEDE);
-  }
-  rect(430,35,160,210);
-  */
   
   //manual override light
   if(man_override==false) { 
@@ -1105,7 +1084,6 @@ if(man_override==true){ //check for manual override
   
 }
 
- //arduino.analogWrite(10, (int)thumb);
  
  // motor speed controls module 1
 if (m1pwm1 > 0) { // motor 1

@@ -87,7 +87,6 @@ public void setup() {
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
-  //cam.lookAt(0,-40,0); // look coordinates
   cam.setMinimumDistance(50); // min/max Zoom in with scroll distance 
   cam.setMaximumDistance(600); 
   float fov     = PI/4;  // field of view
@@ -118,12 +117,60 @@ public void draw() {
   robot.move_robot();
   robot.draw_robot();
 
+  // Items in HUD are still and will not rotate with 3D axis 
   cam.beginHUD();
-
   //Axis frame
   strokeWeight(0);
   
+  // Draws blocking rectangles to make a frame around the 3D axis from going over rest of the HUD
   pushMatrix();
+  hudFrame(); 
+  popMatrix();
+
+  // External Endoscope Camera 
+  if (video.available() == true) {
+    video.read();
+  }
+  image(video, 1350 , 210); //video position
+
+  control_hud_draw();
+  cam.endHUD();
+
+  // Vitual Camera position calcuation for home button
+  cam_position = new PVector(cam.getPosition()[0], cam.getPosition()[1], cam.getPosition()[2]);  
+  angle_xy = degrees(atan2(cam_position.z, cam_position.x));  // camera XY angle from origin
+  distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance()
+}
+
+public void read_serial(){
+  // Reads Serial port data containing IMU and Encoder values every 10 ms
+  if (millis() - read_interval > 10) {
+    read_interval = millis();
+    if (Port.available() > 0) {
+      String read_data = Port.readString();
+      
+      // Protects against null pointer eexception error, incase reads serial data incorrectly
+      if(read_data != null){
+        split_data = split(read_data, ' ');
+      }
+    }
+  }
+}
+
+public void keyPressed(){
+  if(key=='r') setup(); // restart
+  if(key==' ') camera(cam_position.x, cam_position.y, cam_position.z, 0, 0, 0, 0, 0, 1); // stabilise image on Z axis
+
+  if(key=='d') {
+    angle_xy += radians(1);
+    camera(sin(angle_xy)*distance_xy, cam_position.y, cos(angle_xy)*distance_xy, 0, 0, 0, 0, 1, 0);
+  }
+
+  // peasycam's rotations work around the subject:
+  if(key=='p') cam.rotateY(radians(frameCount)/15);
+}
+
+public void hudFrame(){
   // top bar
   stroke(26, 28, 35);
   fill(26, 28, 35);
@@ -163,51 +210,6 @@ public void draw() {
   stroke(46,48,62);
   noFill();
   rect(0, 0, 570, 433) ;
-  
-  popMatrix();
-
-  // External Endoscope Camera 
-  if (video.available() == true) {
-    video.read();
-  }
-  image(video, 1350 , 210); //video position
-
-  control_hud_draw();
-  
-  cam.endHUD();
-
-  // Vitual Camera position calcuation for home button
-  cam_position = new PVector(cam.getPosition()[0], cam.getPosition()[1], cam.getPosition()[2]);  
-  angle_xy = degrees(atan2(cam_position.z, cam_position.x));  // camera XY angle from origin
-  distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance()
-}
-
-public void read_serial(){
-  // Reads Serial port data containing IMU and Encoder values every 10 ms
-  if (millis() - read_interval > 10) {
-    read_interval = millis();
-    if (Port.available() > 0) {
-      String read_data = Port.readString();
-      
-      // Protects against null pointer eexception error, incase reads serial data incorrectly
-      if(read_data != null){
-        split_data = split(read_data, ' ');
-      }
-    }
-  }
-}
-
-public void keyPressed(){
-  if(key=='r') setup(); // restart
-  if(key==' ') camera(cam_position.x, cam_position.y, cam_position.z, 0, 0, 0, 0, 0, 1); // stabilise image on Z axis
-
-  if(key=='d') {
-    angle_xy += radians(1);
-    camera(sin(angle_xy)*distance_xy, cam_position.y, cos(angle_xy)*distance_xy, 0, 0, 0, 0, 1, 0);
-  }
-
-  // peasycam's rotations work around the subject:
-  if(key=='p') cam.rotateY(radians(frameCount)/15);
 }
 class Planes {  
   public
@@ -218,6 +220,7 @@ class Planes {
     public void draw_planes(){
       strokeWeight(2);
       rectMode(CORNERS);
+      
       // Position Planes to line up
       rotateX(PI);
       rotateY(PI/4);
@@ -618,7 +621,7 @@ public void control_init() {
          
   module1label = cp5.addTextlabel("label1")
         .setText("Module 1")
-        .setPosition(300,115+100)
+        .setPosition(290,115+100)
         //.setHeight(30)
         //.setSize(200, 40)
         //.setColorValue(0xffffff00)
@@ -627,7 +630,7 @@ public void control_init() {
 
   module2label = cp5.addTextlabel("label2")
         .setText("Module 2")
-        .setPosition(300+170,115+100)
+        .setPosition(290+170,115+100)
         //.setHeight(30)
         //.setSize(200, 40)
         //.setColorValue(0xffffff00)
@@ -1359,7 +1362,6 @@ if(man_override==true){ //check for manual override
   
 }
 
- //arduino.analogWrite(10, (int)thumb);
  
  // motor speed controls module 1
 if (m1pwm1 > 0) { // motor 1
