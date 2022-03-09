@@ -34,8 +34,9 @@ unsigned long CurrentMillis = 0;
 unsigned long PreviousMillis = 0;
 
 
-const byte LeftEncoderpinA = 2;//A pin -> the interrupt pin 0 
-const byte LeftEncoderpinB = 5;//B pin -> the digital pin 4
+const byte LeftEncoderpinA = 23;//A pin -> the interrupt pin 0 
+const byte LeftEncoderpinB = 22
+;//B pin -> the digital pin 4
 byte LeftEncoderPinALast;
 volatile long LeftDuration = 0;//the number of the pulses // Right
 boolean LeftDirection;//the rotation direction
@@ -65,7 +66,7 @@ void setup(void) {
   // Encoder Setup
   LeftDirection = true;//default -> Forward
   pinMode(LeftEncoderpinB,INPUT);//  Left 
-  attachInterrupt(2, wheelSpeed, CHANGE);
+  attachInterrupt(23, wheelSpeed, CHANGE);
 }
 
 
@@ -106,7 +107,8 @@ void loop() {
         double t3 = +2.0 * (q0 * q3 + q1 * q2);
         double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
         yaw = atan2(t3, t4) * 180.0 / PI;
-
+        
+        //Send IMU and encoder values of serial port
         SERIAL_PORT.print(roll, 1);
         SERIAL_PORT.print(F(" "));
         SERIAL_PORT.print(pitch, 1);
@@ -114,6 +116,7 @@ void loop() {
         SERIAL_PORT.print(yaw, 1);
         SERIAL_PORT.print(F(" "));
         
+        //Calculate Change in encoder counts
         LeftDuration = LeftDuration - PrevLeftDuration;
         PrevLeftDuration = LeftDuration;
         SERIAL_PORT.print(-LeftDuration);
@@ -127,7 +130,7 @@ void loop() {
     delay(10);
   }
   
-  //digitalWrite(ledPin, !digitalRead(ledPin));
+  digitalWrite(ledPin, !digitalRead(ledPin));
 }
 
 void motor_drive(){
@@ -137,7 +140,8 @@ void motor_drive(){
 
 void wheelSpeed()
 {
-   int Lstate = digitalRead(LeftEncoderpinA);
+  int Lstate = digitalRead(LeftEncoderpinA);
+
   if((LeftEncoderPinALast == LOW) && Lstate==HIGH)
   {
     int val = digitalRead(LeftEncoderpinB);

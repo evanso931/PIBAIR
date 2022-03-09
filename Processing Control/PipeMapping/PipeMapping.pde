@@ -4,6 +4,7 @@
  * date Jan 2021
  */ 
 
+
 //Libraries -----------------------------------------------------
 import processing.opengl.*;
 import processing.serial.*;
@@ -29,6 +30,7 @@ RobotModel robot;
 Capture video;
 Textlabel title;
 
+
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
 int read_interval = 0;
@@ -37,6 +39,7 @@ ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
 float angle_xy = 0;
 float distance_xy = 0;
 
+
 void setup() {
   // Program Window
   size(1920,1080,OPENGL);
@@ -44,7 +47,7 @@ void setup() {
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  Port = new Serial(this, Serial.list()[5], 9600);
+  Port = new Serial(this, Serial.list()[4], 9600); // Make sure there are no serial terminals open
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -63,7 +66,7 @@ void setup() {
 
   // Setup external endoscope camera
   String[] cameras = Capture.list();
-  video = new Capture(this, 550, 413, cameras[1], 30);
+  video = new Capture(this, 550, 413, cameras[0], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
   video.start();  
 
   //RobotControl Setup
@@ -119,9 +122,8 @@ void draw() {
   rect(0, 0, 720, 640) ;
 
   // endoscope camera frame
-  // fame
   translate(740, 0, 0);
-  strokeWeight(3);0
+  strokeWeight(3);
   stroke(46,48,62);
   noFill();
   rect(0, 0, 570, 433) ;
@@ -145,12 +147,12 @@ void draw() {
 }
 
 void read_serial(){
-  // Reads Serial port data contaiing IMU and Encoder values every 10 ms
+  // Reads Serial port data containing IMU and Encoder values every 10 ms
   if (millis() - read_interval > 10) {
     read_interval = millis();
     if (Port.available() > 0) {
       String read_data = Port.readString();
-
+      
       // Protects against null pointer eexception error, incase reads serial data incorrectly
       if(read_data != null){
         split_data = split(read_data, ' ');

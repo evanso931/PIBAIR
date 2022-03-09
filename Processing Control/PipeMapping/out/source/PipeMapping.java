@@ -40,6 +40,7 @@ public class PipeMapping extends PApplet {
  * date Jan 2021
  */ 
 
+
 //Libraries -----------------------------------------------------
 
 
@@ -65,6 +66,7 @@ RobotModel robot;
 Capture video;
 Textlabel title;
 
+
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
 int read_interval = 0;
@@ -73,6 +75,7 @@ ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
 float angle_xy = 0;
 float distance_xy = 0;
 
+
 public void setup() {
   // Program Window
   
@@ -80,7 +83,7 @@ public void setup() {
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  Port = new Serial(this, Serial.list()[5], 9600);
+  Port = new Serial(this, Serial.list()[4], 9600); // Make sure there are no serial terminals open
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -99,7 +102,7 @@ public void setup() {
 
   // Setup external endoscope camera
   String[] cameras = Capture.list();
-  video = new Capture(this, 550, 413, cameras[1], 30);
+  video = new Capture(this, 550, 413, cameras[0], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
   video.start();  
 
   //RobotControl Setup
@@ -155,11 +158,7 @@ public void draw() {
   rect(0, 0, 720, 640) ;
 
   // endoscope camera frame
-  // fame
   translate(740, 0, 0);
-  print(mouseX);
-  print(" ");
-  println(mouseY);
   strokeWeight(3);
   stroke(46,48,62);
   noFill();
@@ -184,12 +183,12 @@ public void draw() {
 }
 
 public void read_serial(){
-  // Reads Serial port data contaiing IMU and Encoder values every 10 ms
+  // Reads Serial port data containing IMU and Encoder values every 10 ms
   if (millis() - read_interval > 10) {
     read_interval = millis();
     if (Port.available() > 0) {
       String read_data = Port.readString();
-
+      
       // Protects against null pointer eexception error, incase reads serial data incorrectly
       if(read_data != null){
         split_data = split(read_data, ' ');
@@ -416,6 +415,7 @@ boolean ret_adv = false;
 public void control_init() {
  
   cp5 = new ControlP5(this);
+   
   control = ControlIO.getInstance(this);
   //cont = control.getMatchedDevice("tri_pipebot");
   cont = control.getMatchedDevice("trr_xbox_win_2"); //windows controller
@@ -430,7 +430,7 @@ public void control_init() {
   println(Arduino.list());
   delay(500);
   try{
-  arduino1 = new Arduino(this, Arduino.list()[4], 9600); // list 2 for windows
+  arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
   //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
   }
   catch (Exception e){
@@ -439,6 +439,7 @@ public void control_init() {
     
     
   }
+  
   
   //GUI
   
@@ -723,9 +724,8 @@ public void getUserInput(){
   back_retract = map(cont.getButton("back_retract").getValue(), 0, 1, 0, -255);
   ret_toggle = cont.getButton("ret_toggle").getValue();
   state_sel = cont.getButton("state_sel").getValue();
-  
-  //println(extend1);
-  
+
+  //println(extend1);  
   
 }
 

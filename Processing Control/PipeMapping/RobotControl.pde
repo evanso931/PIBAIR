@@ -161,6 +161,7 @@ boolean ret_adv = false;
 void control_init() {
  
   cp5 = new ControlP5(this);
+   
   control = ControlIO.getInstance(this);
   //cont = control.getMatchedDevice("tri_pipebot");
   cont = control.getMatchedDevice("trr_xbox_win_2"); //windows controller
@@ -175,7 +176,7 @@ void control_init() {
   println(Arduino.list());
   delay(500);
   try{
-  arduino1 = new Arduino(this, Arduino.list()[4], 9600); // list 2 for windows
+  arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
   //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
   }
   catch (Exception e){
@@ -184,6 +185,7 @@ void control_init() {
     
     
   }
+  
   
   //GUI
   
@@ -468,9 +470,8 @@ public void getUserInput(){
   back_retract = map(cont.getButton("back_retract").getValue(), 0, 1, 0, -255);
   ret_toggle = cont.getButton("ret_toggle").getValue();
   state_sel = cont.getButton("state_sel").getValue();
-  
-  //println(extend1);
-  
+
+  //println(extend1);  
   
 }
 
