@@ -4,10 +4,11 @@
  * date Dec 2021
  */ 
 
+
 //Libraries
 #include <Arduino.h>
 #include "ICM_20948.h"
-#include <Firmata.h>
+
 
 //Definitions
 #define SERIAL_PORT Serial
@@ -15,31 +16,30 @@
 #define AD0_VAL 1   
 #define LOOPTIME  10
 
+
 //Object Declarations 
 ICM_20948_I2C myICM;
+
 
 //Function Declarations 
 void motor_drive();
 void wheelSpeed();
-void analogWriteCallback(byte pin, int value);
+void establishContact();
+
 
 //Variables
 const int ledPin = 13;
 double yaw = 0;
 double pitch = 0;
 double roll = 0;
-const int M1A1 = 15;
-const int M1A2 = 14;
-int M1PWM1 = 0;
-int M1PWM2 = 0;
 unsigned long CurrentMillis = 0;
 unsigned long PreviousMillis = 0;
 byte analogPin = 0;
-
+boolean ledState = LOW; //toggle LED
+char val; 
 
 const byte LeftEncoderpinA = 23;//A pin -> the interrupt pin 0 
-const byte LeftEncoderpinB = 22
-;//B pin -> the digital pin 4
+const byte LeftEncoderpinB = 22;//B pin -> the digital pin 4
 byte LeftEncoderPinALast;
 volatile long LeftDuration = 0;//the number of the pulses // Right
 boolean LeftDirection;//the rotation direction
@@ -48,8 +48,11 @@ volatile long PrevLeftDuration = 0;
 
 
 void setup(void) {
-  Serial.begin(9600);
+  establishContact();  // establish handshake with device, repeatably send message till response
+  SERIAL_PORT.begin(9600);
   pinMode(ledPin, OUTPUT);
+
+  delay(100);
   
   // IMU Setup
   WIRE_PORT.begin();
@@ -70,11 +73,7 @@ void setup(void) {
   LeftDirection = true;//default -> Forward
   pinMode(LeftEncoderpinB,INPUT);//  Left 
   attachInterrupt(23, wheelSpeed, CHANGE);
-
-  // Firmata setup for analogue control
-  Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
-  Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
-  Firmata.begin(57600);
+  
 }
 
 
@@ -83,18 +82,7 @@ void loop() {
   myICM.readDMPdataFromFIFO(&data);
   CurrentMillis = millis();
 
-  // From https://github.com/firmata/arduino#firmata-client-libraries
-  if(Firmata.available()){
-    while (Firmata.available()) {
-      Firmata.processInput();
-    }
-    // do one analogRead per loop, so if PC is sending a lot of
-    // analog write messages, we will only delay 1 analogRead
-    Firmata.sendAnalog(analogPin, analogRead(analogPin));
-    analogPin = analogPin + 1;
-    if (analogPin >= TOTAL_ANALOG_PINS) analogPin = 0;
-
-  }else if (CurrentMillis - PreviousMillis >= LOOPTIME) {
+  if (CurrentMillis - PreviousMillis >= LOOPTIME) {
     PreviousMillis = CurrentMillis;  
     if((myICM.status == ICM_20948_Stat_Ok) || (myICM.status == ICM_20948_Stat_FIFOMoreDataAvail)) {
 
@@ -127,23 +115,32 @@ void loop() {
         double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
         yaw = atan2(t3, t4) * 180.0 / PI;
         
-        //Send IMU and encoder values of serial port
-        SERIAL_PORT.print(roll, 1);
-        SERIAL_PORT.print(F(" "));
-        SERIAL_PORT.print(pitch, 1);
-        SERIAL_PORT.print(F(" "));
-        SERIAL_PORT.print(yaw, 1);
-        SERIAL_PORT.print(F(" "));
-        
-        //Calculate Change in encoder counts
-        LeftDuration = LeftDuration - PrevLeftDuration;
-        PrevLeftDuration = LeftDuration;
-        SERIAL_PORT.print(-LeftDuration);
-        SERIAL_PORT.print((" "));
+
+        if (SERIAL_PORT.available() > 0) { // If data is available to read,
+          val = SERIAL_PORT.read(); // read it and store it in val
+          if(val == '1') {
+            ledState = !ledState; //flip the ledState
+            digitalWrite(ledPin, ledState); 
+          }
+        } else {
+
+          //Send IMU and encoder values of serial port
+          SERIAL_PORT.print(roll, 1);
+          SERIAL_PORT.print(" ");
+          SERIAL_PORT.print(pitch, 1);
+          SERIAL_PORT.print(" ");
+          SERIAL_PORT.print(yaw, 1);
+          SERIAL_PORT.print(" ");
+
+          //Calculate Change in encoder counts
+          LeftDuration = LeftDuration - PrevLeftDuration;
+          PrevLeftDuration = LeftDuration;
+          SERIAL_PORT.print(-LeftDuration);
+          SERIAL_PORT.println(" ");
+        }
       }
     }
   }
-
   if (myICM.status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
   {
     delay(10);
@@ -152,8 +149,8 @@ void loop() {
 }
 
 void motor_drive(){
-  analogWrite(M1A1, 0);
-  analogWrite(M1A2, 150); //Sets speed variable via PWM
+  analogWrite(0, 0);
+  analogWrite(1, 150); //Sets speed variable via PWM
 }
 
 void wheelSpeed()
@@ -182,10 +179,9 @@ void wheelSpeed()
   }
 }
 
-void analogWriteCallback(byte pin, int value)
-{
-  if (IS_PIN_PWM(pin)) {
-    pinMode(PIN_TO_DIGITAL(pin), OUTPUT);
-    analogWrite(PIN_TO_PWM(pin), value);
+void establishContact() {
+  while (Serial.available() <= 0) {
+  Serial.println("A");   // send a capital A
+  delay(300);
   }
 }
