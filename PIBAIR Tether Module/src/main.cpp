@@ -38,19 +38,22 @@ byte analogPin = 0;
 boolean ledState = LOW; //toggle LED
 char val; 
 
-const byte LeftEncoderpinA = 23;//A pin -> the interrupt pin 0 
-const byte LeftEncoderpinB = 22;//B pin -> the digital pin 4
+//const byte LeftEncoderpinA = 2;//A pin -> the interrupt pin 0 
+//const byte LeftEncoderpinB = 22;//B pin -> the digital pin 4
 byte LeftEncoderPinALast;
 volatile long LeftDuration = 0;//the number of the pulses // Right
 boolean LeftDirection;//the rotation direction
 int interval = 0;
 volatile long PrevLeftDuration = 0;
+//const byte buttonPin = 2;//A pin -> the interrupt pin 0 
+
 
 
 void setup(void) {
-  establishContact();  // establish handshake with device, repeatably send message till response
+  //establishContact();  // establish handshake with device, repeatably send message till response
   SERIAL_PORT.begin(9600);
   pinMode(ledPin, OUTPUT);
+  //pinMode(buttonPin, INPUT);
 
   delay(100);
   
@@ -69,10 +72,11 @@ void setup(void) {
   success &= (myICM.resetDMP() == ICM_20948_Stat_Ok);
   success &= (myICM.resetFIFO() == ICM_20948_Stat_Ok);
 
-  // Encoder Setup
+  /*Encoder Setup
   LeftDirection = true;//default -> Forward
   pinMode(LeftEncoderpinB,INPUT);//  Left 
-  attachInterrupt(23, wheelSpeed, CHANGE);
+  attachInterrupt(2, wheelSpeed, CHANGE);
+  */
   
 }
 
@@ -132,10 +136,13 @@ void loop() {
           SERIAL_PORT.print(yaw, 1);
           SERIAL_PORT.print(" ");
 
+          /*
           //Calculate Change in encoder counts
           LeftDuration = LeftDuration - PrevLeftDuration;
           PrevLeftDuration = LeftDuration;
-          SERIAL_PORT.print(-LeftDuration);
+          */
+
+          SERIAL_PORT.print("0");
           SERIAL_PORT.println(" ");
         }
       }
@@ -153,6 +160,7 @@ void motor_drive(){
   analogWrite(1, 150); //Sets speed variable via PWM
 }
 
+/*
 void wheelSpeed()
 {
   int Lstate = digitalRead(LeftEncoderpinA);
@@ -185,3 +193,4 @@ void establishContact() {
   delay(300);
   }
 }
+*/

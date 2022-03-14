@@ -43,11 +43,13 @@ float distance_xy = 0;
 void setup() {
   // Program Window
   size(1920,1080,OPENGL);
+  String read_data = "0 0 0 0";
+  split_data = split(read_data, ' ');
   
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  Port = new Serial(this, Serial.list()[4], 9600); // Make sure there are no serial terminals open
+  //Port = new Serial(this, Serial.list()[4], 9600); // Make sure there are no serial terminals open
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -65,7 +67,7 @@ void setup() {
 
   // Setup external endoscope camera
   String[] cameras = Capture.list();
-  video = new Capture(this, 550, 413, cameras[0], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
+  video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
   video.start();  
 
   //RobotControl Setup
@@ -75,7 +77,7 @@ void setup() {
 void draw() {
   background(26, 28, 35);
 
-  read_serial();
+  //read_serial();
 
   planes.draw_planes();
   robot.move_robot();
@@ -111,7 +113,7 @@ void read_serial(){
   if (millis() - read_interval > 10) {
     read_interval = millis();
     if (Port.available() > 0) {
-      String read_data = Port.readString();
+      String read_data = "0 0 0 0";
       
       // Protects against null pointer eexception error, incase reads serial data incorrectly
       if(read_data != null){
@@ -121,7 +123,10 @@ void read_serial(){
   }
 }
 
+
+
 void keyPressed(){
+
   if(key=='r') setup(); // restart
   if(key==' ') camera(cam_position.x, cam_position.y, cam_position.z, 0, 0, 0, 0, 0, 1); // stabilise image on Z axis
 
@@ -129,7 +134,7 @@ void keyPressed(){
     angle_xy += radians(1);
     camera(sin(angle_xy)*distance_xy, cam_position.y, cos(angle_xy)*distance_xy, 0, 0, 0, 0, 1, 0);
   }
-
+   
   // peasycam's rotations work around the subject:
   if(key=='p') cam.rotateY(radians(frameCount)/15);
 }

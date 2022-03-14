@@ -510,8 +510,28 @@ void control_hud_draw(){
   
  stick1.setValue(front_pitch_x,front_pitch_y);
  stick2.setValue(rear_pitch_x,rear_pitch_y);
- 
+ split_data[1] = "0";
+  if (front_pitch_x <= -200){
+      split_data[2] = "50";
+      
+  }else if (front_pitch_x >= 200){
+      split_data[2] = "-50";
+  }
+  //middle 
+  else if (front_pitch_x < 200 && front_pitch_x >-200){
+      split_data[2] = "0";
+      if (front_pitch_y >= 150){
+      split_data[1] = "-55";
+      }else if (front_pitch_y <= -200){
+      split_data[1] = "55";
+      }
+  }else {
+    split_data[2] = "0";
+    split_data[1] = "0";
+  }
+  
 
+  
  
  // if manual override not activated, set the sliders to pwm values
  if(man_override==true){
@@ -664,18 +684,23 @@ void control_hud_draw(){
    s1_butt.setColorBackground(#3A54B4);
    s1_butt.setColorLabel(255);
    sub_state=0; //substate 0 only possible in state 0
+   //split_data[1] = "51";
+
  
  }else{
    s1_butt.setColorBackground(color(128,128,110));
    s1_butt.setColorLabel(255);
+   //split_data[1] = "0";
  }
  if(state==1){
    s2_butt.setColorBackground(#3A54B4);
    s2_butt.setColorLabel(255);
+   //split_data[2] = "-51";
  }
  else{
    s2_butt.setColorBackground(color(128,128,110));
    s2_butt.setColorLabel(255);
+   //split_data[2] = "0";
  }
  if(state==2){
    s3_butt.setColorBackground(#3A54B4);
@@ -1087,6 +1112,7 @@ if (m1pwm1 > 0) { // motor 1
     //println(pwm1);
     arduino1.analogWrite(m1apin, 0);
     arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
+    
   }
   else {
     arduino1.analogWrite(m1apin, abs(m1pwm1));
@@ -1117,10 +1143,22 @@ if (m1pwm4 > 0) { // motor 4
 //    Serial.print(out);
     arduino1.analogWrite(m4apin, m1pwm4);
     arduino1.analogWrite(m4bpin, 0);//Sets speed variable via PWM
+    if(m1pwm4 >= 253){
+      split_data[3] = "1";
+    }else {
+      split_data[3] = "0";
+    }
+
   }
   else {
     arduino1.analogWrite(m4apin, 0);
     arduino1.analogWrite(m4bpin, abs(m1pwm4));//Sets speed variable via PWM
+    if(m1pwm4 <= -253){
+      split_data[3] = "1";
+      split_data[2] = "-140";
+    }else {
+      split_data[3] = "0";
+    }
   }
   
   if (m1pwm5 > 0) { // motor 5

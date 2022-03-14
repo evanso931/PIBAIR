@@ -9,12 +9,12 @@ class RobotModel {
     void draw_robot() {
       strokeWeight(2);
       fill(0, 240, 0, 240);
-      stroke(0,240,0);
-    
+      stroke(240,240,240);
+
       // Draw all the previous positions of robot to form a pipe shape
       for (PVector p : positions) {
         translate(p.x, p.y, p.z);
-        sphere(5);
+        box(10, 10, 10);
       } 
     }
     
@@ -42,7 +42,6 @@ class RobotModel {
         }
       }
     }
-    
     private
     //Function prototypes ------------------------------------------
     
