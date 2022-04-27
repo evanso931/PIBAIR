@@ -157,11 +157,11 @@ int ret_switch = 0;
 boolean ret_adv = false;
 //0 = m1f, 1 = m1r, 2 = m2f, 3 = m2r
 
-
+/*
 void control_init() {
  
   cp5 = new ControlP5(this);
-   
+  
   control = ControlIO.getInstance(this);
   //cont = control.getMatchedDevice("tri_pipebot");
   cont = control.getMatchedDevice("trr_xbox_win_2"); //windows controller
@@ -1286,4 +1286,4 @@ if (m2pwm4 > 0) { // motor 4
     
     */
  
-}
+//}

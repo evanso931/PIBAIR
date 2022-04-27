@@ -23,7 +23,10 @@ import controlP5.*;
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
 String[] split_data;
+String direction = "Forward";
+String read_data2;
 Serial Port;  
+Serial Port2;
 PeasyCam cam;
 Planes planes;
 RobotModel robot;
@@ -38,18 +41,19 @@ PVector cam_position;
 ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
 float angle_xy = 0;
 float distance_xy = 0;
+String val;
+boolean firstContact = false;
 
 
 void setup() {
   // Program Window
   size(1920,1080,OPENGL);
-  String read_data = "0 0 0 0";
-  split_data = split(read_data, ' ');
   
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  //Port = new Serial(this, Serial.list()[4], 9600); // Make sure there are no serial terminals open
+  Port = new Serial(this, Serial.list()[0], 9600); // Make sure there are no serial terminals open
+  Port2 = new Serial(this, Serial.list()[2], 9600);
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -71,13 +75,14 @@ void setup() {
   video.start();  
 
   //RobotControl Setup
-  control_init(); 
+  //control_init(); 
+
 }
 
 void draw() {
   background(26, 28, 35);
 
-  //read_serial();
+  read_serial();
 
   planes.draw_planes();
   robot.move_robot();
@@ -99,7 +104,7 @@ void draw() {
   }
   image(video, 1350 , 210); //video position
 
-  control_hud_draw();
+  //control_hud_draw();
   cam.endHUD();
 
   // Vitual Camera position calcuation for home button
@@ -112,17 +117,23 @@ void read_serial(){
   // Reads Serial port data containing IMU and Encoder values every 10 ms
   if (millis() - read_interval > 10) {
     read_interval = millis();
-    if (Port.available() > 0) {
-      String read_data = "0 0 0 0";
+     if (Port.available() > 0) {
+      String read_data = Port.readStringUntil('\n');
       
       // Protects against null pointer eexception error, incase reads serial data incorrectly
-      if(read_data != null){
-        split_data = split(read_data, ' ');
-      }
+      //if(read_data != null){
+        direction = read_data;
+        println(direction);
+      //}
+    }
+
+    if (Port2.available() > 0){
+      read_data2 = Port2.readString();
+      println(read_data2);
+
     }
   }
 }
-
 
 
 void keyPressed(){
@@ -180,3 +191,46 @@ void hudFrame(){
   noFill();
   rect(0, 0, 570, 433) ;
 }
+/*
+void serialEvent(Serial Port) {
+    //put the incoming data into a String - 
+    //the '\n' is our end delimiter indicating the end of a complete packet
+    val = Port.readStringUntil('\n');
+    //make sure our data isn't empty before continuing
+    if (val != null) {
+      //trim whitespace and formatting characters (like carriage return)
+      //val = trim(val);
+      //println(val);
+      //split_data = split(val, ' ');
+      
+      // Protects against null pointer eexception error, incase reads serial data incorrectly
+  
+        split_data = split(val, ' ');
+        println(split_data);
+      
+      //look for our 'A' string to start the handshake
+      //if it's there, clear the buffer, and send a request for data
+      if (firstContact == false) {
+        if (val.equals("A")) {
+          Port.clear();
+          firstContact = true;
+          Port.write("A");
+          println("contact");
+        }
+      }
+      else { //if we've already established contact, keep getting and parsing data
+        //println(val);
+
+        if (mousePressed == true) 
+        {                           //if we clicked in the window
+          Port.write('1');        //send a 1
+          println("1");
+        }
+
+        // when you've parsed the data you have, ask for more:
+        Port.write("A");
+      }
+    }
+}
+*/
+

@@ -18,7 +18,7 @@ void wheelSpeed();
 //Variables
 const int ledPin = 13;
 const byte LeftEncoderpinA = 2;//A pin -> the interrupt pin 0 
-const byte LeftEncoderpinB = 5;//B pin -> the digital pin 4
+const byte LeftEncoderpinB = 3;//B pin -> the digital pin 4
 byte LeftEncoderPinALast;
 volatile long LeftDuration = 0;//the number of the pulses // Right
 boolean LeftDirection;//the rotation direction
@@ -38,7 +38,7 @@ void setup(void) {
 void loop() {
   LeftDuration = LeftDuration - PrevLeftDuration;
   PrevLeftDuration = LeftDuration;
-  Serial.print(-LeftDuration);
+  Serial.println(-LeftDuration);
 
   delay(10);
   digitalWrite(ledPin, !digitalRead(ledPin));

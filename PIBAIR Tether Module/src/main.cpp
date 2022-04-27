@@ -23,7 +23,6 @@ ICM_20948_I2C myICM;
 
 //Function Declarations 
 void motor_drive();
-void wheelSpeed();
 void establishContact();
 
 
@@ -37,16 +36,7 @@ unsigned long PreviousMillis = 0;
 byte analogPin = 0;
 boolean ledState = LOW; //toggle LED
 char val; 
-
-//const byte LeftEncoderpinA = 2;//A pin -> the interrupt pin 0 
-//const byte LeftEncoderpinB = 22;//B pin -> the digital pin 4
-byte LeftEncoderPinALast;
-volatile long LeftDuration = 0;//the number of the pulses // Right
-boolean LeftDirection;//the rotation direction
-int interval = 0;
-volatile long PrevLeftDuration = 0;
-//const byte buttonPin = 2;//A pin -> the interrupt pin 0 
-
+int current_direction = 7;
 
 
 void setup(void) {
@@ -60,9 +50,7 @@ void setup(void) {
   // IMU Setup
   WIRE_PORT.begin();
   WIRE_PORT.setClock(400000);
-
   myICM.begin(WIRE_PORT, AD0_VAL);
-
   bool success = true;
   success &= (myICM.initializeDMP() == ICM_20948_Stat_Ok); 
   success &= (myICM.enableDMPSensor(INV_ICM20948_SENSOR_GAME_ROTATION_VECTOR) == ICM_20948_Stat_Ok);
@@ -72,12 +60,7 @@ void setup(void) {
   success &= (myICM.resetDMP() == ICM_20948_Stat_Ok);
   success &= (myICM.resetFIFO() == ICM_20948_Stat_Ok);
 
-  /*Encoder Setup
-  LeftDirection = true;//default -> Forward
-  pinMode(LeftEncoderpinB,INPUT);//  Left 
-  attachInterrupt(2, wheelSpeed, CHANGE);
-  */
-  
+  //establishContact();
 }
 
 
@@ -86,105 +69,126 @@ void loop() {
   myICM.readDMPdataFromFIFO(&data);
   CurrentMillis = millis();
 
-  if (CurrentMillis - PreviousMillis >= LOOPTIME) {
-    PreviousMillis = CurrentMillis;  
-    if((myICM.status == ICM_20948_Stat_Ok) || (myICM.status == ICM_20948_Stat_FIFOMoreDataAvail)) {
+  //if (Serial.available() > 0) {
+   /* val = Serial.read(); // read it and store it in val
 
-      if ((data.header & DMP_header_bitmap_Quat6) > 0) {
-        //Read IMU
-        double q1 = ((double)data.Quat6.Data.Q1) / 1073741824.0; // Convert to double. Divide by 2^30
-        double q2 = ((double)data.Quat6.Data.Q2) / 1073741824.0; // Convert to double. Divide by 2^30
-        double q3 = ((double)data.Quat6.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
+    if(val == '1') //if we get a 1
+    {
+       ledState = !ledState; //flip the ledState
+       digitalWrite(ledPin, ledState); 
+       motor_drive();
+    }
+  */
+  //}else { 
+    if (CurrentMillis - PreviousMillis >= LOOPTIME) {
+      PreviousMillis = CurrentMillis;  
+      if((myICM.status == ICM_20948_Stat_Ok) || (myICM.status == ICM_20948_Stat_FIFOMoreDataAvail)) {
+        digitalWrite(ledPin, !digitalRead(ledPin));
+        if ((data.header & DMP_header_bitmap_Quat6) > 0) {
+          //Read IMU
+          double q1 = ((double)data.Quat6.Data.Q1) / 1073741824.0; // Convert to double. Divide by 2^30
+          double q2 = ((double)data.Quat6.Data.Q2) / 1073741824.0; // Convert to double. Divide by 2^30
+          double q3 = ((double)data.Quat6.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
 
-        // Convert the quaternions to Euler angles (roll, pitch, yaw)
-        // https://en.wikipedia.org/w/index.php?title=Conversion_between_quaternions_and_Euler_angles&section=8#Source_code_2
+          // Convert the quaternions to Euler angles (roll, pitch, yaw)
+          // https://en.wikipedia.org/w/index.php?title=Conversion_between_quaternions_and_Euler_angles&section=8#Source_code_2
 
-        double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
+          double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
-        double q2sqr = q2 * q2;
+          double q2sqr = q2 * q2;
 
-        // roll (x-axis rotation)
-        double t0 = +2.0 * (q0 * q1 + q2 * q3);
-        double t1 = +1.0 - 2.0 * (q1 * q1 + q2sqr);
-        roll = atan2(t0, t1) * 180.0 / PI;
+          // roll (x-axis rotation)
+          double t0 = +2.0 * (q0 * q1 + q2 * q3);
+          double t1 = +1.0 - 2.0 * (q1 * q1 + q2sqr);
+          roll = atan2(t0, t1) * 180.0 / PI;
 
-        // pitch (y-axis rotation)
-        double t2 = +2.0 * (q0 * q2 - q3 * q1);
-        t2 = t2 > 1.0 ? 1.0 : t2;
-        t2 = t2 < -1.0 ? -1.0 : t2;
-        pitch = asin(t2) * 180.0 / PI;
+          // pitch (y-axis rotation)
+          double t2 = +2.0 * (q0 * q2 - q3 * q1);
+          t2 = t2 > 1.0 ? 1.0 : t2;
+          t2 = t2 < -1.0 ? -1.0 : t2;
+          pitch = asin(t2) * 180.0 / PI;
 
-        // yaw (z-axis rotation)
-        double t3 = +2.0 * (q0 * q3 + q1 * q2);
-        double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
-        yaw = atan2(t3, t4) * 180.0 / PI;
-        
+          // yaw (z-axis rotation)
+          double t3 = +2.0 * (q0 * q3 + q1 * q2);
+          double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
+          yaw = atan2(t3, t4) * 180.0 / PI;
+          
 
-        if (SERIAL_PORT.available() > 0) { // If data is available to read,
-          val = SERIAL_PORT.read(); // read it and store it in val
-          if(val == '1') {
-            ledState = !ledState; //flip the ledState
-            digitalWrite(ledPin, ledState); 
+          if (SERIAL_PORT.available() > 0) { // If data is available to read,
+            val = SERIAL_PORT.read(); // read it and store it in val
+            if(val == '1') {
+              ledState = !ledState; //flip the ledState
+              digitalWrite(ledPin, ledState); 
+            }
+          } else {
+
+            /* Send IMU and encoder values of serial port
+            SERIAL_PORT.print(roll, 1);
+            SERIAL_PORT.print(" ");
+            SERIAL_PORT.print(pitch, 1);
+            SERIAL_PORT.print(" ");
+            SERIAL_PORT.println(yaw, 1);
+            SERIAL_PORT.println(" ");
+            */
+
+            // Down
+            if (pitch < - 50) {
+              //if (current_direction != 0){
+                SERIAL_PORT.println(0); 
+                //current_direction = 0;
+              //}
+            // Up
+            }else if (pitch> 50) {
+              //if (current_direction != 1){
+                SERIAL_PORT.println(1);
+                //current_direction = 1;
+              //}
+            // Right
+            }else if (yaw < - 45 && yaw > - 135) {
+              //if (current_direction != 2){
+                SERIAL_PORT.println(2);
+                //current_direction = 2;
+              //}
+            // Left
+            }else if (yaw > 45 && yaw < 135) {
+              //if (current_direction != 3){
+                SERIAL_PORT.println(3);
+                //current_direction = 3;
+              //}
+            // Backward
+            }else if (yaw > 135 || yaw < - 135) {
+              //if (current_direction != 4){
+                SERIAL_PORT.println(4);
+                //current_direction = 4;
+              //}
+            // Forward
+            } else if (yaw < 45 && yaw > - 45) {
+              //if (current_direction != 5){
+                SERIAL_PORT.println(5); 
+                //current_direction = 5;
+              //}
+            }
           }
-        } else {
-
-          //Send IMU and encoder values of serial port
-          SERIAL_PORT.print(roll, 1);
-          SERIAL_PORT.print(" ");
-          SERIAL_PORT.print(pitch, 1);
-          SERIAL_PORT.print(" ");
-          SERIAL_PORT.print(yaw, 1);
-          SERIAL_PORT.print(" ");
-
-          /*
-          //Calculate Change in encoder counts
-          LeftDuration = LeftDuration - PrevLeftDuration;
-          PrevLeftDuration = LeftDuration;
-          */
-
-          SERIAL_PORT.print("0");
-          SERIAL_PORT.println(" ");
         }
       }
     }
-  }
-  if (myICM.status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
-  {
-    delay(10);
-  }
+
+    if (myICM.status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
+    {
+      delay(10);
+    }
+    
+    
+    //analogWrite(10, 0);
+    //analogWrite(11, 0);
+  //}
 
 }
 
 void motor_drive(){
-  analogWrite(0, 0);
-  analogWrite(1, 150); //Sets speed variable via PWM
-}
-
-/*
-void wheelSpeed()
-{
-  int Lstate = digitalRead(LeftEncoderpinA);
-
-  if((LeftEncoderPinALast == LOW) && Lstate==HIGH)
-  {
-    int val = digitalRead(LeftEncoderpinB);
-    if(val == LOW && LeftDirection)
-    {
-      LeftDirection = false; //Reverse
-    }
-    else if(val == HIGH && !LeftDirection)
-    {
-      LeftDirection = true;  //Forward
-    }
-  }
-  LeftEncoderPinALast = Lstate;
-
-  if(!LeftDirection)  {
-    LeftDuration--;
+  analogWrite(10, 0);
+  analogWrite(11, 80);
   
-  }else  {
-    LeftDuration++;
-  }
 }
 
 void establishContact() {
@@ -193,4 +197,3 @@ void establishContact() {
   delay(300);
   }
 }
-*/

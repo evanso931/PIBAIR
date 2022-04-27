@@ -59,7 +59,10 @@ public class PipeMapping extends PApplet {
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
 String[] split_data;
+String direction = "Forward";
+String read_data2;
 Serial Port;  
+Serial Port2;
 PeasyCam cam;
 Planes planes;
 RobotModel robot;
@@ -74,18 +77,19 @@ PVector cam_position;
 ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
 float angle_xy = 0;
 float distance_xy = 0;
+String val;
+boolean firstContact = false;
 
 
 public void setup() {
   // Program Window
   
-  String read_data = "0 0 0 0";
-  split_data = split(read_data, ' ');
   
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  //Port = new Serial(this, Serial.list()[4], 9600); // Make sure there are no serial terminals open
+  Port = new Serial(this, Serial.list()[0], 9600); // Make sure there are no serial terminals open
+  Port2 = new Serial(this, Serial.list()[2], 9600);
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -107,13 +111,14 @@ public void setup() {
   video.start();  
 
   //RobotControl Setup
-  control_init(); 
+  //control_init(); 
+
 }
 
 public void draw() {
   background(26, 28, 35);
 
-  //read_serial();
+  read_serial();
 
   planes.draw_planes();
   robot.move_robot();
@@ -135,7 +140,7 @@ public void draw() {
   }
   image(video, 1350 , 210); //video position
 
-  control_hud_draw();
+  //control_hud_draw();
   cam.endHUD();
 
   // Vitual Camera position calcuation for home button
@@ -148,17 +153,23 @@ public void read_serial(){
   // Reads Serial port data containing IMU and Encoder values every 10 ms
   if (millis() - read_interval > 10) {
     read_interval = millis();
-    if (Port.available() > 0) {
-      String read_data = "0 0 0 0";
+     if (Port.available() > 0) {
+      String read_data = Port.readStringUntil('\n');
       
       // Protects against null pointer eexception error, incase reads serial data incorrectly
-      if(read_data != null){
-        split_data = split(read_data, ' ');
-      }
+      //if(read_data != null){
+        direction = read_data;
+        println(direction);
+      //}
+    }
+
+    if (Port2.available() > 0){
+      read_data2 = Port2.readString();
+      println(read_data2);
+
     }
   }
 }
-
 
 
 public void keyPressed(){
@@ -216,6 +227,49 @@ public void hudFrame(){
   noFill();
   rect(0, 0, 570, 433) ;
 }
+/*
+void serialEvent(Serial Port) {
+    //put the incoming data into a String - 
+    //the '\n' is our end delimiter indicating the end of a complete packet
+    val = Port.readStringUntil('\n');
+    //make sure our data isn't empty before continuing
+    if (val != null) {
+      //trim whitespace and formatting characters (like carriage return)
+      //val = trim(val);
+      //println(val);
+      //split_data = split(val, ' ');
+      
+      // Protects against null pointer eexception error, incase reads serial data incorrectly
+  
+        split_data = split(val, ' ');
+        println(split_data);
+      
+      //look for our 'A' string to start the handshake
+      //if it's there, clear the buffer, and send a request for data
+      if (firstContact == false) {
+        if (val.equals("A")) {
+          Port.clear();
+          firstContact = true;
+          Port.write("A");
+          println("contact");
+        }
+      }
+      else { //if we've already established contact, keep getting and parsing data
+        //println(val);
+
+        if (mousePressed == true) 
+        {                           //if we clicked in the window
+          Port.write('1');        //send a 1
+          println("1");
+        }
+
+        // when you've parsed the data you have, ask for more:
+        Port.write("A");
+      }
+    }
+}
+*/
+
 class Planes {  
   public
 
@@ -419,11 +473,11 @@ int ret_switch = 0;
 boolean ret_adv = false;
 //0 = m1f, 1 = m1r, 2 = m2f, 3 = m2r
 
-
-public void control_init() {
+/*
+void control_init() {
  
   cp5 = new ControlP5(this);
-   
+  
   control = ControlIO.getInstance(this);
   //cont = control.getMatchedDevice("tri_pipebot");
   cont = control.getMatchedDevice("trr_xbox_win_2"); //windows controller
@@ -454,8 +508,8 @@ public void control_init() {
          .setSize(100,100)
          .setMinMax(-255,-255,255,255)
          .setValue(0,0)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          //.disableCrosshair()
          ;
  stick2 = cp5.addSlider2D("Right Stick")
@@ -463,56 +517,56 @@ public void control_init() {
          .setSize(100,100)
          .setMinMax(-255,-255,255,255)
          .setValue(0,0)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          //.disableCrosshair()
          ;
   m1motor1 = cp5.addKnob("M1")
        .setPosition(300,150+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(0xff3A54B4)
-       .setColorForeground(0xffFFFFFF)
+       .setColorBackground(#3A54B4)
+       .setColorForeground(#FFFFFF)
        ;
        
   m1motor2 = cp5.addKnob("M2")
        .setPosition(325,190+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(0xff3A54B4)
-       .setColorForeground(0xffFFFFFF)
+       .setColorBackground(#3A54B4)
+       .setColorForeground(#FFFFFF)
        ;
        
   m1motor3 = cp5.addKnob("M3")
          .setPosition(275,190+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m1motor4 = cp5.addKnob("M4")
          .setPosition(300,240+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m1motor5 = cp5.addKnob("M5")
          .setPosition(325,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m1motor6 = cp5.addKnob("M6")
          .setPosition(275,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m1motor7 = cp5.addSlider("M7")
@@ -521,8 +575,8 @@ public void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m1motor8 = cp5.addSlider("M8")
@@ -531,8 +585,8 @@ public void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
  m2motor1 = cp5.addKnob("2M1")
@@ -540,8 +594,8 @@ public void control_init() {
        .setPosition(300+170,150+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(0xff3A54B4)
-       .setColorForeground(0xffFFFFFF)
+       .setColorBackground(#3A54B4)
+       .setColorForeground(#FFFFFF)
        ;
        
   m2motor2 = cp5.addKnob("2M2")
@@ -549,8 +603,8 @@ public void control_init() {
        .setPosition(325+170,190+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(0xff3A54B4)
-       .setColorForeground(0xffFFFFFF)
+       .setColorBackground(#3A54B4)
+       .setColorForeground(#FFFFFF)
        ;
        
   m2motor3 = cp5.addKnob("2M3")
@@ -558,8 +612,8 @@ public void control_init() {
          .setPosition(275+170,190+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m2motor4 = cp5.addKnob("2M4")
@@ -567,8 +621,8 @@ public void control_init() {
          .setPosition(300+170,240+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m2motor5 = cp5.addKnob("2M5")
@@ -576,8 +630,8 @@ public void control_init() {
          .setPosition(325+170,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m2motor6 = cp5.addKnob("2M6")
@@ -585,8 +639,8 @@ public void control_init() {
          .setPosition(275+170,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m2motor7 = cp5.addSlider("2M7")
@@ -596,8 +650,8 @@ public void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   m2motor8 = cp5.addSlider("2M8")
@@ -607,8 +661,8 @@ public void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(0xff3A54B4)
-         .setColorForeground(0xffFFFFFF)
+         .setColorBackground(#3A54B4)
+         .setColorForeground(#FFFFFF)
          ;
          
   override_switch = cp5.addToggle("man_override")
@@ -617,9 +671,9 @@ public void control_init() {
          .setSize(50,20)
          .setValue(true)
          .setMode(ControlP5.SWITCH)
-         .setColorBackground(0xffFFFFFF)
-         .setColorForeground(0xffFFFFFF)
-         .setColorActive(0xff3A54B4)
+         .setColorBackground(#FFFFFF)
+         .setColorForeground(#FFFFFF)
+         .setColorActive(#3A54B4)
          ;
          
   module1label = cp5.addTextlabel("label1")
@@ -646,7 +700,7 @@ public void control_init() {
      .setValue(0)
      .setPosition(150,100+300)
      .setSize(60,19)
-      .setColorForeground(0xff3A54B4)
+      .setColorForeground(#3A54B4)
      ;
  s2_butt = cp5.addButton("s2_butt")
    .setCaptionLabel("Module 1")
@@ -654,14 +708,14 @@ public void control_init() {
      .setPosition(150,125+300)
      .setSize(60,19)
     
-         .setColorForeground(0xff3A54B4)
+         .setColorForeground(#3A54B4)
      ;
  s3_butt = cp5.addButton("s3_butt")
    .setCaptionLabel("Module 2")
      .setValue(0)
      .setPosition(150,150+300)
      .setSize(60,19)
-         .setColorForeground(0xff3A54B4)
+         .setColorForeground(#3A54B4)
      ;
      
 ss1_butt = cp5.addButton("ss1_butt")
@@ -669,14 +723,14 @@ ss1_butt = cp5.addButton("ss1_butt")
      .setValue(0)
      .setPosition(150,200+300)
      .setSize(60,19)
-         .setColorForeground(0xff3A54B4)
+         .setColorForeground(#3A54B4)
      ;
  ss2_butt = cp5.addButton("ss2_butt")
     .setCaptionLabel("Split")
      .setValue(0)
      .setPosition(150,225+300)
      .setSize(60,19)
-         .setColorForeground(0xff3A54B4)
+         .setColorForeground(#3A54B4)
      ;
          
   smooth();
@@ -688,7 +742,7 @@ ss1_butt = cp5.addButton("ss1_butt")
         .setPosition(10,10)
         //.setHeight(100)
         //.setSize(300, 140)
-        .setColorValue(color(0xff3A54B4))
+        .setColorValue(color(#3A54B4))
         .setFont(createFont("Arial Bold Italic",150,true))
         ;
 
@@ -697,7 +751,7 @@ ss1_butt = cp5.addButton("ss1_butt")
         .setPosition(550,10)
         //.setHeight(100)
         //.setSize(300, 140)
-        .setColorValue(color(0xffFFFFFF))
+        .setColorValue(color(#FFFFFF))
         .setFont(createFont("Arial Bold Italic",150,true))
         ;
 
@@ -758,7 +812,7 @@ public void ss2_butt() {
 
 
 
-public void control_hud_draw(){
+void control_hud_draw(){
   
  long currentMillis = millis(); 
  //println(state_sel);
@@ -792,7 +846,6 @@ public void control_hud_draw(){
     split_data[1] = "0";
   }
   
-  
 
   
  
@@ -823,7 +876,7 @@ public void control_hud_draw(){
   
   //manual override light
   if(man_override==false) { 
-    fill(0xffFF0009);
+    fill(#FF0009);
   } else {
     fill(128,128,110);
   }
@@ -831,7 +884,7 @@ public void control_hud_draw(){
   
   // retraction toggle front light 1
  if(ret_switch==0) {
-    fill(0xffFF0009);
+    fill(#FF0009);
   } else {
     fill(128,128,110);
   }
@@ -839,7 +892,7 @@ public void control_hud_draw(){
   
   // retraction toggle front light 2
  if(ret_switch==2) {
-    fill(0xffFF0009);
+    fill(#FF0009);
   } else {
     fill(128,128,110);
   }
@@ -847,7 +900,7 @@ public void control_hud_draw(){
   
   // retraction toggle rear light 1
   if(ret_switch==1) {
-    fill(0xffFF0009);
+    fill(#FF0009);
   } else {
     fill(128,128,110);
   }
@@ -855,7 +908,7 @@ public void control_hud_draw(){
   
   // retraction toggle rear light 2
   if(ret_switch==3) {
-    fill(0xffFF0009);
+    fill(#FF0009);
   } else {
     fill(128,128,110);
   }
@@ -944,7 +997,7 @@ public void control_hud_draw(){
  
  // change visuals for state buttons
  if(state==0){
-   s1_butt.setColorBackground(0xff3A54B4);
+   s1_butt.setColorBackground(#3A54B4);
    s1_butt.setColorLabel(255);
    sub_state=0; //substate 0 only possible in state 0
    //split_data[1] = "51";
@@ -956,7 +1009,7 @@ public void control_hud_draw(){
    //split_data[1] = "0";
  }
  if(state==1){
-   s2_butt.setColorBackground(0xff3A54B4);
+   s2_butt.setColorBackground(#3A54B4);
    s2_butt.setColorLabel(255);
    //split_data[2] = "-51";
  }
@@ -966,7 +1019,7 @@ public void control_hud_draw(){
    //split_data[2] = "0";
  }
  if(state==2){
-   s3_butt.setColorBackground(0xff3A54B4);
+   s3_butt.setColorBackground(#3A54B4);
    s3_butt.setColorLabel(255);
  }
  else{
@@ -975,7 +1028,7 @@ public void control_hud_draw(){
  }
  
  if(sub_state==0){
-   ss1_butt.setColorBackground(0xff3A54B4);
+   ss1_butt.setColorBackground(#3A54B4);
    ss1_butt.setColorLabel(255);
  
  }else{
@@ -983,7 +1036,7 @@ public void control_hud_draw(){
    ss1_butt.setColorLabel(255);
  }
  if(sub_state==1){
-   ss2_butt.setColorBackground(0xff3A54B4);
+   ss2_butt.setColorBackground(#3A54B4);
    ss2_butt.setColorLabel(255);
  }
  else{
@@ -1098,39 +1151,39 @@ if (front_r < joy_thresh){
   
  if((60 > front_theta) && (front_theta > 0)){
    lf_theta = front_theta;
-   m4 = (0.5f + (0.5f *(1-((lf_theta)/60)))) * -1;
-   m5 = (1-((lf_theta)/30)) * 0.5f;
-   m6 = 0.5f+(0.5f*(lf_theta/60));
+   m4 = (0.5 + (0.5 *(1-((lf_theta)/60)))) * -1;
+   m5 = (1-((lf_theta)/30)) * 0.5;
+   m6 = 0.5+(0.5*(lf_theta/60));
    
  }else if((120 > front_theta) && (front_theta > 60)){
    lf_theta = 60-(front_theta -60)  ;  
-   m5 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
-   m4 = (1-(lf_theta/30)) * 0.5f;
-   m6 = 0.5f+(0.5f*(lf_theta/60)) ;
+   m5 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
+   m4 = (1-(lf_theta/30)) * 0.5;
+   m6 = 0.5+(0.5*(lf_theta/60)) ;
    
  }else if((180 > front_theta) && (front_theta > 120)){
    lf_theta = front_theta -120;
-   m5 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
-   m6 = (1-(lf_theta/30)) * 0.5f;
-   m4 = 0.5f+(0.5f*(lf_theta/60));
+   m5 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
+   m6 = (1-(lf_theta/30)) * 0.5;
+   m4 = 0.5+(0.5*(lf_theta/60));
    
  }else if((240 > front_theta) && (front_theta > 180)){
    lf_theta = 60- (front_theta - 180);
-   m6 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
-   m5 = (1-(lf_theta/30)) * 0.5f;
-   m4 = 0.5f+(0.5f*(lf_theta/60));
+   m6 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
+   m5 = (1-(lf_theta/30)) * 0.5;
+   m4 = 0.5+(0.5*(lf_theta/60));
    
  }else if((300 > front_theta) && (front_theta > 240)){
    lf_theta = front_theta -240 ;
-   m6 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
-   m4 = (1-(lf_theta/30)) * 0.5f;
-   m5 = 0.5f+(0.5f*(lf_theta/60));
+   m6 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
+   m4 = (1-(lf_theta/30)) * 0.5;
+   m5 = 0.5+(0.5*(lf_theta/60));
    
  }else if((360 > front_theta) && (front_theta > 300)){
    lf_theta = 60-(front_theta - 300);
-   m4 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
-   m6 = (1-(lf_theta/30)) * 0.5f;
-   m5 = 0.5f+(0.5f*(lf_theta/60));
+   m4 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
+   m6 = (1-(lf_theta/30)) * 0.5;
+   m5 = 0.5+(0.5*(lf_theta/60));
    
  }else{
    m4 = 1;
@@ -1187,39 +1240,39 @@ if (rear_r < joy_thresh){
   
  if((60 > rear_theta) && (rear_theta > 0)){
    l_theta = rear_theta;
-   m1 = (0.5f + (0.5f *(1-((l_theta)/60)))) * -1;
-   m2 = (1-((l_theta)/30)) * 0.5f;
-   m3 = 0.5f+(0.5f*(l_theta/60));
+   m1 = (0.5 + (0.5 *(1-((l_theta)/60)))) * -1;
+   m2 = (1-((l_theta)/30)) * 0.5;
+   m3 = 0.5+(0.5*(l_theta/60));
    
  }else if((120 > rear_theta) && (rear_theta > 60)){
    l_theta = 60-(rear_theta -60)  ;  
-   m2 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
-   m1 = (1-(l_theta/30)) * 0.5f;
-   m3 = 0.5f+(0.5f*(l_theta/60)) ;
+   m2 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
+   m1 = (1-(l_theta/30)) * 0.5;
+   m3 = 0.5+(0.5*(l_theta/60)) ;
    
  }else if((180 > rear_theta) && (rear_theta > 120)){
    l_theta = rear_theta -120;
-   m2 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
-   m3 = (1-(l_theta/30)) * 0.5f;
-   m1 = 0.5f+(0.5f*(l_theta/60));
+   m2 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
+   m3 = (1-(l_theta/30)) * 0.5;
+   m1 = 0.5+(0.5*(l_theta/60));
    
  }else if((240 > rear_theta) && (rear_theta > 180)){
    l_theta = 60- (rear_theta - 180);
-   m3 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
-   m2 = (1-(l_theta/30)) * 0.5f;
-   m1 = 0.5f+(0.5f*(l_theta/60));
+   m3 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
+   m2 = (1-(l_theta/30)) * 0.5;
+   m1 = 0.5+(0.5*(l_theta/60));
    
  }else if((300 > rear_theta) && (rear_theta > 240)){
    l_theta = rear_theta -240 ;
-   m3 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
-   m1 = (1-(l_theta/30)) * 0.5f;
-   m2 = 0.5f+(0.5f*(l_theta/60));
+   m3 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
+   m1 = (1-(l_theta/30)) * 0.5;
+   m2 = 0.5+(0.5*(l_theta/60));
    
  }else if((360 > rear_theta) && (rear_theta > 300)){
    l_theta = 60-(rear_theta - 300);
-   m1 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
-   m3 = (1-(l_theta/30)) * 0.5f;
-   m2 = 0.5f+(0.5f*(l_theta/60));
+   m1 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
+   m3 = (1-(l_theta/30)) * 0.5;
+   m2 = 0.5+(0.5*(l_theta/60));
    
  }else{
    m1 = 1;
@@ -1549,7 +1602,7 @@ if (m2pwm4 > 0) { // motor 4
     
     */
  
-}
+//}
 class RobotModel {  
   public
     
@@ -1571,24 +1624,24 @@ class RobotModel {
     }
     
     public void move_robot() {
-      if (split_data[3] == null) {
-      } else if (PApplet.parseFloat(split_data[3]) != 0) {
-        if (PApplet.parseFloat(split_data[1]) < - 50) {
+      if (read_data2 == null) {
+      } else if (PApplet.parseFloat(read_data2) > 0 || PApplet.parseFloat(read_data2) < 0) {
+        if (PApplet.parseFloat(direction) == 0) {
           positions.add(new PVector(0,0,1));
           z_position++;
-        } else if (PApplet.parseFloat(split_data[1]) > 50) {
+        } else if (PApplet.parseFloat(direction) == 1) {
           positions.add(new PVector(0,0, -1));
           z_position--;
-        } else if (PApplet.parseFloat(split_data[2]) < - 45 && PApplet.parseFloat(split_data[2]) > - 135) {
+        } else if (PApplet.parseFloat(direction) == 2) {
           positions.add(new PVector(0,1,0));
           y_position++;
-        } else if (PApplet.parseFloat(split_data[2]) > 45 && PApplet.parseFloat(split_data[2]) < 135) {
+        } else if (PApplet.parseFloat(direction) == 3) {
           positions.add(new PVector(0, -1,0));
           y_position--;
-        } else if (PApplet.parseFloat(split_data[2]) > 135 || PApplet.parseFloat(split_data[2]) < - 135) {
+        } else if (PApplet.parseFloat(direction) == 4) {
           positions.add(new PVector(1,0,0));
           x_position++;
-        } else if (PApplet.parseFloat(split_data[2]) < 45 && PApplet.parseFloat(split_data[2]) > - 45) {
+        } else if (PApplet.parseFloat(direction) == 5) {
           positions.add(new PVector( -1,0,0));
           x_position--;
         }

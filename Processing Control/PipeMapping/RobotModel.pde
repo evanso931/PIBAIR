@@ -19,24 +19,24 @@ class RobotModel {
     }
     
     void move_robot() {
-      if (split_data[3] == null) {
-      } else if (float(split_data[3]) != 0) {
-        if (float(split_data[1]) < - 50) {
+      if (read_data2 == null) {
+      } else if (float(read_data2) > 0 || float(read_data2) < 0) {
+        if (float(direction) == 0) {
           positions.add(new PVector(0,0,1));
           z_position++;
-        } else if (float(split_data[1]) > 50) {
+        } else if (float(direction) == 1) {
           positions.add(new PVector(0,0, -1));
           z_position--;
-        } else if (float(split_data[2]) < - 45 && float(split_data[2]) > - 135) {
+        } else if (float(direction) == 2) {
           positions.add(new PVector(0,1,0));
           y_position++;
-        } else if (float(split_data[2]) > 45 && float(split_data[2]) < 135) {
+        } else if (float(direction) == 3) {
           positions.add(new PVector(0, -1,0));
           y_position--;
-        } else if (float(split_data[2]) > 135 || float(split_data[2]) < - 135) {
+        } else if (float(direction) == 4) {
           positions.add(new PVector(1,0,0));
           x_position++;
-        } else if (float(split_data[2]) < 45 && float(split_data[2]) > - 45) {
+        } else if (float(direction) == 5) {
           positions.add(new PVector( -1,0,0));
           x_position--;
         }
