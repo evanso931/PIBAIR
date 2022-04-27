@@ -60,7 +60,7 @@ void setup(void) {
   success &= (myICM.resetDMP() == ICM_20948_Stat_Ok);
   success &= (myICM.resetFIFO() == ICM_20948_Stat_Ok);
 
-  //establishContact();
+  establishContact();
 }
 
 
@@ -69,8 +69,8 @@ void loop() {
   myICM.readDMPdataFromFIFO(&data);
   CurrentMillis = millis();
 
-  //if (Serial.available() > 0) {
-   /* val = Serial.read(); // read it and store it in val
+  if (Serial.available() > 0) {
+    val = Serial.read(); // read it and store it in val
 
     if(val == '1') //if we get a 1
     {
@@ -78,8 +78,8 @@ void loop() {
        digitalWrite(ledPin, ledState); 
        motor_drive();
     }
-  */
-  //}else { 
+  
+  }else { 
     if (CurrentMillis - PreviousMillis >= LOOPTIME) {
       PreviousMillis = CurrentMillis;  
       if((myICM.status == ICM_20948_Stat_Ok) || (myICM.status == ICM_20948_Stat_FIFOMoreDataAvail)) {
@@ -179,9 +179,9 @@ void loop() {
     }
     
     
-    //analogWrite(10, 0);
-    //analogWrite(11, 0);
-  //}
+    analogWrite(10, 0);
+    analogWrite(11, 0);
+  }
 
 }
 

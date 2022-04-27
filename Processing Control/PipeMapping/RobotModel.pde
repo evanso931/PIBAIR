@@ -19,8 +19,7 @@ class RobotModel {
     }
     
     void move_robot() {
-      if (read_data2 == null) {
-      } else if (float(read_data2) > 0 || float(read_data2) < 0) {
+      if (encoder_counts > 0 || encoder_counts < 0) {
         if (float(direction) == 0) {
           positions.add(new PVector(0,0,1));
           z_position++;

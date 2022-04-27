@@ -59,10 +59,10 @@ public class PipeMapping extends PApplet {
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
 String[] split_data;
-String direction = "Forward";
-String read_data2;
+String direction = "5";
+//String read_data2 = "0";
 Serial Port;  
-Serial Port2;
+Serial Encoder;
 PeasyCam cam;
 Planes planes;
 RobotModel robot;
@@ -77,8 +77,8 @@ PVector cam_position;
 ArrayList<RobotModel> robots = new ArrayList<RobotModel>();
 float angle_xy = 0;
 float distance_xy = 0;
-String val;
-boolean firstContact = false;
+boolean firstContact = true;
+float encoder_counts = 0;
 
 
 public void setup() {
@@ -88,8 +88,9 @@ public void setup() {
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
+  Encoder = new Serial(this, Serial.list()[2], 9600);
   Port = new Serial(this, Serial.list()[0], 9600); // Make sure there are no serial terminals open
-  Port2 = new Serial(this, Serial.list()[2], 9600);
+  
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -118,7 +119,6 @@ public void setup() {
 public void draw() {
   background(26, 28, 35);
 
-  read_serial();
 
   planes.draw_planes();
   robot.move_robot();
@@ -148,29 +148,6 @@ public void draw() {
   angle_xy = degrees(atan2(cam_position.z, cam_position.x));  // camera XY angle from origin
   distance_xy = sqrt(pow(cam_position.z, 2) + pow(cam_position.x, 2)); // camera-object XY distance (compare to cam.getDistance()
 }
-
-public void read_serial(){
-  // Reads Serial port data containing IMU and Encoder values every 10 ms
-  if (millis() - read_interval > 10) {
-    read_interval = millis();
-     if (Port.available() > 0) {
-      String read_data = Port.readStringUntil('\n');
-      
-      // Protects against null pointer eexception error, incase reads serial data incorrectly
-      //if(read_data != null){
-        direction = read_data;
-        println(direction);
-      //}
-    }
-
-    if (Port2.available() > 0){
-      read_data2 = Port2.readString();
-      println(read_data2);
-
-    }
-  }
-}
-
 
 public void keyPressed(){
 
@@ -227,27 +204,33 @@ public void hudFrame(){
   noFill();
   rect(0, 0, 570, 433) ;
 }
-/*
-void serialEvent(Serial Port) {
+
+public void serialEvent(Serial Port) {
+    
     //put the incoming data into a String - 
     //the '\n' is our end delimiter indicating the end of a complete packet
-    val = Port.readStringUntil('\n');
+    
+    String read_data2 = Encoder.readStringUntil('\n');
+    if (read_data2 != null ) {
+      encoder_counts = PApplet.parseFloat(read_data2);
+      println(encoder_counts); 
+    }
+
+    String read_data = Port.readStringUntil('\n');
     //make sure our data isn't empty before continuing
-    if (val != null) {
+    //String read_data = read_data2;
+    if (read_data != null ) {
       //trim whitespace and formatting characters (like carriage return)
-      //val = trim(val);
-      //println(val);
-      //split_data = split(val, ' ');
       
       // Protects against null pointer eexception error, incase reads serial data incorrectly
   
-        split_data = split(val, ' ');
-        println(split_data);
-      
+        direction = read_data;
+        println(direction);
+
       //look for our 'A' string to start the handshake
       //if it's there, clear the buffer, and send a request for data
       if (firstContact == false) {
-        if (val.equals("A")) {
+        if (read_data.equals("A")) {
           Port.clear();
           firstContact = true;
           Port.write("A");
@@ -268,7 +251,6 @@ void serialEvent(Serial Port) {
       }
     }
 }
-*/
 
 class Planes {  
   public
@@ -1624,8 +1606,7 @@ class RobotModel {
     }
     
     public void move_robot() {
-      if (read_data2 == null) {
-      } else if (PApplet.parseFloat(read_data2) > 0 || PApplet.parseFloat(read_data2) < 0) {
+      if (encoder_counts > 0 || encoder_counts < 0) {
         if (PApplet.parseFloat(direction) == 0) {
           positions.add(new PVector(0,0,1));
           z_position++;
