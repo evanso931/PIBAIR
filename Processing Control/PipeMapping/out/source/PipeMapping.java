@@ -80,8 +80,12 @@ float encoder_counts = 0;
 float previous_counts = 0;
 long CurrentMillis = 0;
 long PreviousMillis = 0;
+int[] fake_data = new int[300];
 
 public void setup() {
+  // Fill fake data array
+  fakeData();
+
   // Program Window
   
   
@@ -250,6 +254,39 @@ public void serialEvent(Serial Port) {
         Port.write("A");
       }
     }
+}
+
+public void fakeData(){
+  // fills fake data array with inverse square values
+  /*
+  for(int i = 0; i < 148; i ++){
+    fake_data[i] = 250 * (4)/((150-i)*(150-i));
+    println(fake_data[i]);
+  }
+  fake_data[149] = 250;
+  println(fake_data[149]);
+  fake_data[150] = 255;
+  println(fake_data[150]);
+  fake_data[151] = 250;
+  println(fake_data[151]);
+
+  for(int i = 153; i < 300; i ++){
+    fake_data[i] = 250 * (4)/((150-i)*(150-i));
+    println(fake_data[i]);
+  }
+  */
+  for(int i = 0; i < 150; i ++){
+    fake_data[i] = PApplet.parseInt(i*1.5f);
+    println(fake_data[i]);
+  }
+
+  fake_data[150] = 255;
+
+  for(int i = 151; i < 300; i ++){
+    fake_data[i] = PApplet.parseInt(((300-i)*1.5f));
+    println(fake_data[i]);
+  }
+
 }
 
 class Planes {  
@@ -1611,8 +1648,6 @@ class RobotModel {
     }
     
     public void draw_robot() {
-      strokeWeight(2);
-      fill(0, 240, 0, 240);
       stroke(240,240,240);
 
       // Draw all the previous positions of robot to form a pipe shape
@@ -1620,11 +1655,13 @@ class RobotModel {
       for (PVector p : positions) {
         translate(p.x, p.y, p.z);
         if (i%10 == 0){
+          strokeWeight(2);
           stroke(0,0,0);
         }else {
+          strokeWeight(1);
           stroke(240,240,240);
         }
-
+        fill(fake_data[i], (240-fake_data[i]), 0, 240);
         box(10, 10, 10);
         i++;
       } 

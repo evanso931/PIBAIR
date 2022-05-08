@@ -7,8 +7,6 @@ class RobotModel {
     }
     
     void draw_robot() {
-      strokeWeight(2);
-      fill(0, 240, 0, 240);
       stroke(240,240,240);
 
       // Draw all the previous positions of robot to form a pipe shape
@@ -16,11 +14,13 @@ class RobotModel {
       for (PVector p : positions) {
         translate(p.x, p.y, p.z);
         if (i%10 == 0){
+          strokeWeight(2);
           stroke(0,0,0);
         }else {
+          strokeWeight(1);
           stroke(240,240,240);
         }
-
+        fill(fake_data[i], (240-fake_data[i]), 0, 240);
         box(10, 10, 10);
         i++;
       } 

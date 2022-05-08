@@ -44,8 +44,12 @@ float encoder_counts = 0;
 float previous_counts = 0;
 long CurrentMillis = 0;
 long PreviousMillis = 0;
+int[] fake_data = new int[300];
 
 void setup() {
+  // Fill fake data array
+  fakeData();
+
   // Program Window
   size(1920,1030,OPENGL);
   
@@ -214,5 +218,38 @@ void serialEvent(Serial Port) {
         Port.write("A");
       }
     }
+}
+
+void fakeData(){
+  // fills fake data array with inverse square values
+  /*
+  for(int i = 0; i < 148; i ++){
+    fake_data[i] = 250 * (4)/((150-i)*(150-i));
+    println(fake_data[i]);
+  }
+  fake_data[149] = 250;
+  println(fake_data[149]);
+  fake_data[150] = 255;
+  println(fake_data[150]);
+  fake_data[151] = 250;
+  println(fake_data[151]);
+
+  for(int i = 153; i < 300; i ++){
+    fake_data[i] = 250 * (4)/((150-i)*(150-i));
+    println(fake_data[i]);
+  }
+  */
+  for(int i = 0; i < 150; i ++){
+    fake_data[i] = int(i*1.5);
+    println(fake_data[i]);
+  }
+
+  fake_data[150] = 255;
+
+  for(int i = 151; i < 300; i ++){
+    fake_data[i] = int(((300-i)*1.5));
+    println(fake_data[i]);
+  }
+
 }
 
