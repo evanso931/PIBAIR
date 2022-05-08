@@ -22,7 +22,6 @@ import controlP5.*;
 
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
-String[] split_data;
 String direction = "5";
 //String read_data2 = "0";
 Serial Port;  
@@ -33,7 +32,6 @@ RobotModel robot;
 Capture video;
 Textlabel title;
 
-
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
 int read_interval = 0;
@@ -43,18 +41,18 @@ float angle_xy = 0;
 float distance_xy = 0;
 boolean firstContact = true;
 float encoder_counts = 0;
-
+long CurrentMillis = 0;
+long PreviousMillis = 0;
 
 void setup() {
   // Program Window
-  size(1920,1080,OPENGL);
+  size(1920,1030,OPENGL);
   
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  Encoder = new Serial(this, Serial.list()[2], 9600);
   Port = new Serial(this, Serial.list()[0], 9600); // Make sure there are no serial terminals open
-  
+  Encoder = new Serial(this, Serial.list()[2], 9600); // Might be different if using arduino for 5 v power
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -72,17 +70,17 @@ void setup() {
 
   // Setup external endoscope camera
   String[] cameras = Capture.list();
-  video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
-  video.start();  
+  printArray(cameras);
+  //video = new Capture(this, 550, 413, cameras[0], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
+  //video.start();  
 
   //RobotControl Setup
-  //control_init(); 
+  control_init(); 
 
 }
 
 void draw() {
   background(26, 28, 35);
-
 
   planes.draw_planes();
   robot.move_robot();
@@ -99,12 +97,12 @@ void draw() {
   popMatrix();
 
   // External Endoscope Camera 
-  if (video.available() == true) {
-    video.read();
-  }
-  image(video, 1350 , 210); //video position
+  //if (video.available() == true) {
+   // video.read();
+  //}
+  //image(video, 1350 , 210); //video position
 
-  //control_hud_draw();
+  control_hud_draw();
   cam.endHUD();
 
   // Vitual Camera position calcuation for home button
@@ -206,9 +204,10 @@ void serialEvent(Serial Port) {
 
         if (mousePressed == true) 
         {                           //if we clicked in the window
+          //String pwm = pwm_data[1];
           Port.write('1');        //send a 1
           println("1");
-        }
+       }
 
         // when you've parsed the data you have, ask for more:
         Port.write("A");

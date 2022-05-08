@@ -58,7 +58,6 @@ public class PipeMapping extends PApplet {
 
 //Object Declarations -------------------------------------------
 ToxiclibsSupport gfx;
-String[] split_data;
 String direction = "5";
 //String read_data2 = "0";
 Serial Port;  
@@ -69,7 +68,6 @@ RobotModel robot;
 Capture video;
 Textlabel title;
 
-
 //Variables -----------------------------------------------------
 float encoder_difference = 0;
 int read_interval = 0;
@@ -79,7 +77,8 @@ float angle_xy = 0;
 float distance_xy = 0;
 boolean firstContact = true;
 float encoder_counts = 0;
-
+long CurrentMillis = 0;
+long PreviousMillis = 0;
 
 public void setup() {
   // Program Window
@@ -88,9 +87,8 @@ public void setup() {
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  Encoder = new Serial(this, Serial.list()[2], 9600);
   Port = new Serial(this, Serial.list()[0], 9600); // Make sure there are no serial terminals open
-  
+  Encoder = new Serial(this, Serial.list()[2], 9600); // Might be different if using arduino for 5 v power
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom
@@ -108,17 +106,17 @@ public void setup() {
 
   // Setup external endoscope camera
   String[] cameras = Capture.list();
-  video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
-  video.start();  
+  printArray(cameras);
+  //video = new Capture(this, 550, 413, cameras[0], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
+  //video.start();  
 
   //RobotControl Setup
-  //control_init(); 
+  control_init(); 
 
 }
 
 public void draw() {
   background(26, 28, 35);
-
 
   planes.draw_planes();
   robot.move_robot();
@@ -135,12 +133,12 @@ public void draw() {
   popMatrix();
 
   // External Endoscope Camera 
-  if (video.available() == true) {
-    video.read();
-  }
-  image(video, 1350 , 210); //video position
+  //if (video.available() == true) {
+   // video.read();
+  //}
+  //image(video, 1350 , 210); //video position
 
-  //control_hud_draw();
+  control_hud_draw();
   cam.endHUD();
 
   // Vitual Camera position calcuation for home button
@@ -242,9 +240,10 @@ public void serialEvent(Serial Port) {
 
         if (mousePressed == true) 
         {                           //if we clicked in the window
+          //String pwm = pwm_data[1];
           Port.write('1');        //send a 1
           println("1");
-        }
+       }
 
         // when you've parsed the data you have, ask for more:
         Port.write("A");
@@ -296,6 +295,8 @@ class Planes {
   // Variables ----------------------------------------------------
    
 } 
+// Robot Control Code is by Nicholas Castledine
+
 
 
 
@@ -310,7 +311,7 @@ class Planes {
 ControlDevice cont;
 ControlIO control;
 
-Arduino arduino1;
+//Arduino arduino1;
 
 // GUI item setups
 ControlP5 cp5;
@@ -365,14 +366,15 @@ int m7bpin = 13;//A5;
 int m8apin = 14;//A8;
 int m8bpin = 15;//A9;
 
-int m1pwm1;
-int m1pwm2;
-int m1pwm3;
-int m1pwm4;
-int m1pwm5;
-int m1pwm6;
-int m1pwm7;
-int m1pwm8;
+String[] pwm_data = {"0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"};
+int m1pwm1 = 0;
+int m1pwm2 = 0;
+int m1pwm3 = 0;
+int m1pwm4 = 0;
+int m1pwm5 = 0;
+int m1pwm6 = 0;
+int m1pwm7 = 0;
+int m1pwm8 = 0;
 
 int m2pwm1;
 int m2pwm2;
@@ -455,8 +457,8 @@ int ret_switch = 0;
 boolean ret_adv = false;
 //0 = m1f, 1 = m1r, 2 = m2f, 3 = m2r
 
-/*
-void control_init() {
+
+public void control_init() {
  
   cp5 = new ControlP5(this);
   
@@ -468,19 +470,20 @@ void control_init() {
     println("not working");
     System.exit(-1);
   }
-  
-  println(Arduino.list());
-  delay(500);
-  try{
-  arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
+
+  // Old firmata code
+  //println(Arduino.list());
+  //delay(500);
+  //try{
+  //arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
   //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
-  }
-  catch (Exception e){
-    e.printStackTrace();
-    exit();
+  //}
+  //catch (Exception e){
+   // e.printStackTrace();
+    //exit();
     
     
-  }
+  //}
   
   
   //GUI
@@ -490,8 +493,8 @@ void control_init() {
          .setSize(100,100)
          .setMinMax(-255,-255,255,255)
          .setValue(0,0)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          //.disableCrosshair()
          ;
  stick2 = cp5.addSlider2D("Right Stick")
@@ -499,56 +502,56 @@ void control_init() {
          .setSize(100,100)
          .setMinMax(-255,-255,255,255)
          .setValue(0,0)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          //.disableCrosshair()
          ;
   m1motor1 = cp5.addKnob("M1")
        .setPosition(300,150+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(#3A54B4)
-       .setColorForeground(#FFFFFF)
+       .setColorBackground(0xff3A54B4)
+       .setColorForeground(0xffFFFFFF)
        ;
        
   m1motor2 = cp5.addKnob("M2")
        .setPosition(325,190+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(#3A54B4)
-       .setColorForeground(#FFFFFF)
+       .setColorBackground(0xff3A54B4)
+       .setColorForeground(0xffFFFFFF)
        ;
        
   m1motor3 = cp5.addKnob("M3")
          .setPosition(275,190+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m1motor4 = cp5.addKnob("M4")
          .setPosition(300,240+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m1motor5 = cp5.addKnob("M5")
          .setPosition(325,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m1motor6 = cp5.addKnob("M6")
          .setPosition(275,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m1motor7 = cp5.addSlider("M7")
@@ -557,8 +560,8 @@ void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m1motor8 = cp5.addSlider("M8")
@@ -567,8 +570,8 @@ void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
  m2motor1 = cp5.addKnob("2M1")
@@ -576,8 +579,8 @@ void control_init() {
        .setPosition(300+170,150+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(#3A54B4)
-       .setColorForeground(#FFFFFF)
+       .setColorBackground(0xff3A54B4)
+       .setColorForeground(0xffFFFFFF)
        ;
        
   m2motor2 = cp5.addKnob("2M2")
@@ -585,8 +588,8 @@ void control_init() {
        .setPosition(325+170,190+100)
        .setRange(-255,255)
        .setColorLabel(255)
-       .setColorBackground(#3A54B4)
-       .setColorForeground(#FFFFFF)
+       .setColorBackground(0xff3A54B4)
+       .setColorForeground(0xffFFFFFF)
        ;
        
   m2motor3 = cp5.addKnob("2M3")
@@ -594,8 +597,8 @@ void control_init() {
          .setPosition(275+170,190+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m2motor4 = cp5.addKnob("2M4")
@@ -603,8 +606,8 @@ void control_init() {
          .setPosition(300+170,240+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m2motor5 = cp5.addKnob("2M5")
@@ -612,8 +615,8 @@ void control_init() {
          .setPosition(325+170,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m2motor6 = cp5.addKnob("2M6")
@@ -621,8 +624,8 @@ void control_init() {
          .setPosition(275+170,280+100)
          .setRange(-255,255)
          .setColorLabel(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m2motor7 = cp5.addSlider("2M7")
@@ -632,8 +635,8 @@ void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   m2motor8 = cp5.addSlider("2M8")
@@ -643,8 +646,8 @@ void control_init() {
          .setSize(10,50)
          .setColorLabel(255)
          .setColorValue(255)
-         .setColorBackground(#3A54B4)
-         .setColorForeground(#FFFFFF)
+         .setColorBackground(0xff3A54B4)
+         .setColorForeground(0xffFFFFFF)
          ;
          
   override_switch = cp5.addToggle("man_override")
@@ -653,9 +656,9 @@ void control_init() {
          .setSize(50,20)
          .setValue(true)
          .setMode(ControlP5.SWITCH)
-         .setColorBackground(#FFFFFF)
-         .setColorForeground(#FFFFFF)
-         .setColorActive(#3A54B4)
+         .setColorBackground(0xffFFFFFF)
+         .setColorForeground(0xffFFFFFF)
+         .setColorActive(0xff3A54B4)
          ;
          
   module1label = cp5.addTextlabel("label1")
@@ -682,7 +685,7 @@ void control_init() {
      .setValue(0)
      .setPosition(150,100+300)
      .setSize(60,19)
-      .setColorForeground(#3A54B4)
+      .setColorForeground(0xff3A54B4)
      ;
  s2_butt = cp5.addButton("s2_butt")
    .setCaptionLabel("Module 1")
@@ -690,14 +693,14 @@ void control_init() {
      .setPosition(150,125+300)
      .setSize(60,19)
     
-         .setColorForeground(#3A54B4)
+         .setColorForeground(0xff3A54B4)
      ;
  s3_butt = cp5.addButton("s3_butt")
    .setCaptionLabel("Module 2")
      .setValue(0)
      .setPosition(150,150+300)
      .setSize(60,19)
-         .setColorForeground(#3A54B4)
+         .setColorForeground(0xff3A54B4)
      ;
      
 ss1_butt = cp5.addButton("ss1_butt")
@@ -705,14 +708,14 @@ ss1_butt = cp5.addButton("ss1_butt")
      .setValue(0)
      .setPosition(150,200+300)
      .setSize(60,19)
-         .setColorForeground(#3A54B4)
+         .setColorForeground(0xff3A54B4)
      ;
  ss2_butt = cp5.addButton("ss2_butt")
     .setCaptionLabel("Split")
      .setValue(0)
      .setPosition(150,225+300)
      .setSize(60,19)
-         .setColorForeground(#3A54B4)
+         .setColorForeground(0xff3A54B4)
      ;
          
   smooth();
@@ -724,7 +727,7 @@ ss1_butt = cp5.addButton("ss1_butt")
         .setPosition(10,10)
         //.setHeight(100)
         //.setSize(300, 140)
-        .setColorValue(color(#3A54B4))
+        .setColorValue(color(0xff3A54B4))
         .setFont(createFont("Arial Bold Italic",150,true))
         ;
 
@@ -733,7 +736,7 @@ ss1_butt = cp5.addButton("ss1_butt")
         .setPosition(550,10)
         //.setHeight(100)
         //.setSize(300, 140)
-        .setColorValue(color(#FFFFFF))
+        .setColorValue(color(0xffFFFFFF))
         .setFont(createFont("Arial Bold Italic",150,true))
         ;
 
@@ -794,7 +797,7 @@ public void ss2_butt() {
 
 
 
-void control_hud_draw(){
+public void control_hud_draw(){
   
  long currentMillis = millis(); 
  //println(state_sel);
@@ -808,25 +811,7 @@ void control_hud_draw(){
   
  stick1.setValue(front_pitch_x,front_pitch_y);
  stick2.setValue(rear_pitch_x,rear_pitch_y);
- split_data[1] = "0";
-  if (front_pitch_x <= -200){
-      split_data[2] = "50";
-      
-  }else if (front_pitch_x >= 200){
-      split_data[2] = "-50";
-  }
-  //middle 
-  else if (front_pitch_x < 200 && front_pitch_x >-200){
-      split_data[2] = "0";
-      if (front_pitch_y >= 150){
-      split_data[1] = "-55";
-      }else if (front_pitch_y <= -200){
-      split_data[1] = "55";
-      }
-  }else {
-    split_data[2] = "0";
-    split_data[1] = "0";
-  }
+
   
 
   
@@ -858,7 +843,7 @@ void control_hud_draw(){
   
   //manual override light
   if(man_override==false) { 
-    fill(#FF0009);
+    fill(0xffFF0009);
   } else {
     fill(128,128,110);
   }
@@ -866,7 +851,7 @@ void control_hud_draw(){
   
   // retraction toggle front light 1
  if(ret_switch==0) {
-    fill(#FF0009);
+    fill(0xffFF0009);
   } else {
     fill(128,128,110);
   }
@@ -874,7 +859,7 @@ void control_hud_draw(){
   
   // retraction toggle front light 2
  if(ret_switch==2) {
-    fill(#FF0009);
+    fill(0xffFF0009);
   } else {
     fill(128,128,110);
   }
@@ -882,7 +867,7 @@ void control_hud_draw(){
   
   // retraction toggle rear light 1
   if(ret_switch==1) {
-    fill(#FF0009);
+    fill(0xffFF0009);
   } else {
     fill(128,128,110);
   }
@@ -890,7 +875,7 @@ void control_hud_draw(){
   
   // retraction toggle rear light 2
   if(ret_switch==3) {
-    fill(#FF0009);
+    fill(0xffFF0009);
   } else {
     fill(128,128,110);
   }
@@ -979,29 +964,28 @@ void control_hud_draw(){
  
  // change visuals for state buttons
  if(state==0){
-   s1_butt.setColorBackground(#3A54B4);
+   s1_butt.setColorBackground(0xff3A54B4);
    s1_butt.setColorLabel(255);
    sub_state=0; //substate 0 only possible in state 0
-   //split_data[1] = "51";
 
  
  }else{
    s1_butt.setColorBackground(color(128,128,110));
    s1_butt.setColorLabel(255);
-   //split_data[1] = "0";
+
  }
  if(state==1){
-   s2_butt.setColorBackground(#3A54B4);
+   s2_butt.setColorBackground(0xff3A54B4);
    s2_butt.setColorLabel(255);
-   //split_data[2] = "-51";
+ 
  }
  else{
    s2_butt.setColorBackground(color(128,128,110));
    s2_butt.setColorLabel(255);
-   //split_data[2] = "0";
+   
  }
  if(state==2){
-   s3_butt.setColorBackground(#3A54B4);
+   s3_butt.setColorBackground(0xff3A54B4);
    s3_butt.setColorLabel(255);
  }
  else{
@@ -1010,7 +994,7 @@ void control_hud_draw(){
  }
  
  if(sub_state==0){
-   ss1_butt.setColorBackground(#3A54B4);
+   ss1_butt.setColorBackground(0xff3A54B4);
    ss1_butt.setColorLabel(255);
  
  }else{
@@ -1018,7 +1002,7 @@ void control_hud_draw(){
    ss1_butt.setColorLabel(255);
  }
  if(sub_state==1){
-   ss2_butt.setColorBackground(#3A54B4);
+   ss2_butt.setColorBackground(0xff3A54B4);
    ss2_butt.setColorLabel(255);
  }
  else{
@@ -1133,39 +1117,39 @@ if (front_r < joy_thresh){
   
  if((60 > front_theta) && (front_theta > 0)){
    lf_theta = front_theta;
-   m4 = (0.5 + (0.5 *(1-((lf_theta)/60)))) * -1;
-   m5 = (1-((lf_theta)/30)) * 0.5;
-   m6 = 0.5+(0.5*(lf_theta/60));
+   m4 = (0.5f + (0.5f *(1-((lf_theta)/60)))) * -1;
+   m5 = (1-((lf_theta)/30)) * 0.5f;
+   m6 = 0.5f+(0.5f*(lf_theta/60));
    
  }else if((120 > front_theta) && (front_theta > 60)){
    lf_theta = 60-(front_theta -60)  ;  
-   m5 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
-   m4 = (1-(lf_theta/30)) * 0.5;
-   m6 = 0.5+(0.5*(lf_theta/60)) ;
+   m5 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
+   m4 = (1-(lf_theta/30)) * 0.5f;
+   m6 = 0.5f+(0.5f*(lf_theta/60)) ;
    
  }else if((180 > front_theta) && (front_theta > 120)){
    lf_theta = front_theta -120;
-   m5 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
-   m6 = (1-(lf_theta/30)) * 0.5;
-   m4 = 0.5+(0.5*(lf_theta/60));
+   m5 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
+   m6 = (1-(lf_theta/30)) * 0.5f;
+   m4 = 0.5f+(0.5f*(lf_theta/60));
    
  }else if((240 > front_theta) && (front_theta > 180)){
    lf_theta = 60- (front_theta - 180);
-   m6 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
-   m5 = (1-(lf_theta/30)) * 0.5;
-   m4 = 0.5+(0.5*(lf_theta/60));
+   m6 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
+   m5 = (1-(lf_theta/30)) * 0.5f;
+   m4 = 0.5f+(0.5f*(lf_theta/60));
    
  }else if((300 > front_theta) && (front_theta > 240)){
    lf_theta = front_theta -240 ;
-   m6 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
-   m4 = (1-(lf_theta/30)) * 0.5;
-   m5 = 0.5+(0.5*(lf_theta/60));
+   m6 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
+   m4 = (1-(lf_theta/30)) * 0.5f;
+   m5 = 0.5f+(0.5f*(lf_theta/60));
    
  }else if((360 > front_theta) && (front_theta > 300)){
    lf_theta = 60-(front_theta - 300);
-   m4 = (0.5 + (0.5 *(1-(lf_theta/60)))) * -1;
-   m6 = (1-(lf_theta/30)) * 0.5;
-   m5 = 0.5+(0.5*(lf_theta/60));
+   m4 = (0.5f + (0.5f *(1-(lf_theta/60)))) * -1;
+   m6 = (1-(lf_theta/30)) * 0.5f;
+   m5 = 0.5f+(0.5f*(lf_theta/60));
    
  }else{
    m4 = 1;
@@ -1222,39 +1206,39 @@ if (rear_r < joy_thresh){
   
  if((60 > rear_theta) && (rear_theta > 0)){
    l_theta = rear_theta;
-   m1 = (0.5 + (0.5 *(1-((l_theta)/60)))) * -1;
-   m2 = (1-((l_theta)/30)) * 0.5;
-   m3 = 0.5+(0.5*(l_theta/60));
+   m1 = (0.5f + (0.5f *(1-((l_theta)/60)))) * -1;
+   m2 = (1-((l_theta)/30)) * 0.5f;
+   m3 = 0.5f+(0.5f*(l_theta/60));
    
  }else if((120 > rear_theta) && (rear_theta > 60)){
    l_theta = 60-(rear_theta -60)  ;  
-   m2 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
-   m1 = (1-(l_theta/30)) * 0.5;
-   m3 = 0.5+(0.5*(l_theta/60)) ;
+   m2 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
+   m1 = (1-(l_theta/30)) * 0.5f;
+   m3 = 0.5f+(0.5f*(l_theta/60)) ;
    
  }else if((180 > rear_theta) && (rear_theta > 120)){
    l_theta = rear_theta -120;
-   m2 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
-   m3 = (1-(l_theta/30)) * 0.5;
-   m1 = 0.5+(0.5*(l_theta/60));
+   m2 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
+   m3 = (1-(l_theta/30)) * 0.5f;
+   m1 = 0.5f+(0.5f*(l_theta/60));
    
  }else if((240 > rear_theta) && (rear_theta > 180)){
    l_theta = 60- (rear_theta - 180);
-   m3 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
-   m2 = (1-(l_theta/30)) * 0.5;
-   m1 = 0.5+(0.5*(l_theta/60));
+   m3 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
+   m2 = (1-(l_theta/30)) * 0.5f;
+   m1 = 0.5f+(0.5f*(l_theta/60));
    
  }else if((300 > rear_theta) && (rear_theta > 240)){
    l_theta = rear_theta -240 ;
-   m3 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
-   m1 = (1-(l_theta/30)) * 0.5;
-   m2 = 0.5+(0.5*(l_theta/60));
+   m3 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
+   m1 = (1-(l_theta/30)) * 0.5f;
+   m2 = 0.5f+(0.5f*(l_theta/60));
    
  }else if((360 > rear_theta) && (rear_theta > 300)){
    l_theta = 60-(rear_theta - 300);
-   m1 = (0.5 + (0.5 *(1-(l_theta/60)))) * -1;
-   m3 = (1-(l_theta/30)) * 0.5;
-   m2 = 0.5+(0.5*(l_theta/60));
+   m1 = (0.5f + (0.5f *(1-(l_theta/60)))) * -1;
+   m3 = (1-(l_theta/30)) * 0.5f;
+   m2 = 0.5f+(0.5f*(l_theta/60));
    
  }else{
    m1 = 1;
@@ -1404,101 +1388,134 @@ if(man_override==true){ //check for manual override
   
 }
 
- 
  // motor speed controls module 1
 if (m1pwm1 > 0) { // motor 1
     //println(pwm1);
-    arduino1.analogWrite(m1apin, 0);
-    arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
+    //arduino1.analogWrite(m1apin, 0);
+    //arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
+    pwm_data[0] = "0";
+    pwm_data[1] = str(m1pwm1);
     
   }
   else {
-    arduino1.analogWrite(m1apin, abs(m1pwm1));
-    arduino1.analogWrite(m1bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m1apin, abs(m1pwm1));
+    //arduino1.analogWrite(m1bpin, 0);//Sets speed variable via PWM
+    pwm_data[0] = str(abs(m1pwm1));
+    pwm_data[1] = "0";
+    
   }
-  
 if (m1pwm2 > 0) { // motor 2
 //    Serial.print(out);
-    arduino1.analogWrite(m2apin, 0);
-    arduino1.analogWrite(m2bpin, m1pwm2);//Sets speed variable via PWM
+    //arduino1.analogWrite(m2apin, 0);
+    //arduino1.analogWrite(m2bpin, m1pwm2);//Sets speed variable via PWM
+    pwm_data[2] = "0";
+    pwm_data[3] = str(m1pwm2);
+    //println(pwm_data[3]);
   }
   else {
-    arduino1.analogWrite(m2apin, abs(m1pwm2));
-    arduino1.analogWrite(m2bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m2apin, abs(m1pwm2));
+    //arduino1.analogWrite(m2bpin, 0);//Sets speed variable via PWM
+    pwm_data[2] = str(abs(m1pwm2));
+    pwm_data[3] = "0";
+    //println(pwm_data[2]);
   }
 
 if (m1pwm3 > 0) { // motor 3
 //    Serial.print(out);
-    arduino1.analogWrite(m3apin, 0);
-    arduino1.analogWrite(m3bpin, m1pwm3);//Sets speed variable via PWM
+    //arduino1.analogWrite(m3apin, 0);
+    //arduino1.analogWrite(m3bpin, m1pwm3);//Sets speed variable via PWM
+    pwm_data[4] = "0";
+    pwm_data[5] = str(m1pwm3);
   }
   else {
-    arduino1.analogWrite(m3apin, abs(m1pwm3));
-    arduino1.analogWrite(m3bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m3apin, abs(m1pwm3));
+    //arduino1.analogWrite(m3bpin, 0);//Sets speed variable via PWM
+    pwm_data[4] = str(abs(m1pwm3));
+    pwm_data[5] = "0";
   }
 
 if (m1pwm4 > 0) { // motor 4
 //    Serial.print(out);
-    arduino1.analogWrite(m4apin, m1pwm4);
-    arduino1.analogWrite(m4bpin, 0);//Sets speed variable via PWM
-    if(m1pwm4 >= 253){
-      split_data[3] = "1";
-    }else {
-      split_data[3] = "0";
-    }
-
+    //arduino1.analogWrite(m4apin, m1pwm4);
+    //arduino1.analogWrite(m4bpin, 0);//Sets speed variable via PWM
+    pwm_data[6] = "0";
+    pwm_data[7] = str(m1pwm4);
   }
   else {
-    arduino1.analogWrite(m4apin, 0);
-    arduino1.analogWrite(m4bpin, abs(m1pwm4));//Sets speed variable via PWM
-    if(m1pwm4 <= -253){
-      split_data[3] = "1";
-      split_data[2] = "-140";
-    }else {
-      split_data[3] = "0";
-    }
+   // arduino1.analogWrite(m4apin, 0);
+    //arduino1.analogWrite(m4bpin, abs(m1pwm4));//Sets speed variable via PWM
+    pwm_data[6] = str(abs(m1pwm4));
+    pwm_data[7] = "0";
   }
   
   if (m1pwm5 > 0) { // motor 5
 //    Serial.print(out);
-    arduino1.analogWrite(m5apin, m1pwm5);
-    arduino1.analogWrite(m5bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m5apin, m1pwm5);
+    //arduino1.analogWrite(m5bpin, 0);//Sets speed variable via PWM
+    pwm_data[8] = "0";
+    pwm_data[9] = str(m1pwm5);
   }
   else {
-    arduino1.analogWrite(m5apin, 0);
-    arduino1.analogWrite(m5bpin, abs(m1pwm5));//Sets speed variable via PWM
+    //arduino1.analogWrite(m5apin, 0);
+    //arduino1.analogWrite(m5bpin, abs(m1pwm5));//Sets speed variable via PWM
+    pwm_data[8] = str(abs(m1pwm5));
+    pwm_data[9] = "0";
   }
   
   if (m1pwm6 > 0) { // motor 6
 //    Serial.print(out);
-    arduino1.analogWrite(m6apin, m1pwm6);
-    arduino1.analogWrite(m6bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m6apin, m1pwm6);
+    //arduino1.analogWrite(m6bpin, 0);//Sets speed variable via PWM
+    pwm_data[10] = "0";
+    pwm_data[11] = str(m1pwm6);
   }
   else {
-    arduino1.analogWrite(m6apin, 0);
-    arduino1.analogWrite(m6bpin, abs(m1pwm6));//Sets speed variable via PWM
+    //arduino1.analogWrite(m6apin, 0);
+    //arduino1.analogWrite(m6bpin, abs(m1pwm6));//Sets speed variable via PWM
+    pwm_data[10] = str(abs(m1pwm6));
+    pwm_data[11] = "0";
   }
   
   if (m1pwm7 > 0) { // motor 7
 //println(pwm7);
-    arduino1.analogWrite(m7apin, m1pwm7);
-    arduino1.analogWrite(m7bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m7apin, m1pwm7);
+    //arduino1.analogWrite(m7bpin, 0);//Sets speed variable via PWM
+    pwm_data[12] = "0";
+    pwm_data[13] = str(m1pwm7);
   }
   else  {
-    arduino1.analogWrite(m7apin, 0);
-    arduino1.analogWrite(m7bpin, abs(m1pwm7));//Sets speed variable via PWM
+    //arduino1.analogWrite(m7apin, 0);
+    //arduino1.analogWrite(m7bpin, abs(m1pwm7));//Sets speed variable via PWM
+    pwm_data[12] = str(abs(m1pwm7));
+    pwm_data[13] = "0";
   }
   
   if (m1pwm8 > 0) { // motor 8
 //    Serial.print(out);
-    arduino1.analogWrite(m8apin, m1pwm8);
-    arduino1.analogWrite(m8bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m8apin, m1pwm8);
+    //arduino1.analogWrite(m8bpin, 0);//Sets speed variable via PWM
+    pwm_data[14] = "0";
+    pwm_data[15] = str(m1pwm8);
   }
   else {
-    arduino1.analogWrite(m8apin, 0);
-    arduino1.analogWrite(m8bpin, abs(m1pwm8));//Sets speed variable via PWM
+    //arduino1.analogWrite(m8apin, 0);
+    //arduino1.analogWrite(m8bpin, abs(m1pwm8));//Sets speed variable via PWM
+    pwm_data[14] = str(abs(m1pwm8));
+    pwm_data[15] = "0";
   }
   
+// Write Motor PWM data to serial port
+
+CurrentMillis = millis();
+if (CurrentMillis - PreviousMillis >= 10) {
+  PreviousMillis = CurrentMillis;  
+  for (int i = 0; i < 16; ++i) {
+    Port.write(pwm_data[i]);
+    Port.write(":");
+  }
+  Port.write("\n");
+}
+
   
  /*
   // motor speed controls module 2
@@ -1583,8 +1600,7 @@ if (m2pwm4 > 0) { // motor 4
   }
     
     */
- 
-//}
+}
 class RobotModel {  
   public
     
@@ -1639,7 +1655,7 @@ class RobotModel {
     float z_position = -5; 
     
 } 
-  public void settings() {  size(1920,1080,OPENGL); }
+  public void settings() {  size(1920,1030,OPENGL); }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "PipeMapping" };
     if (passedArgs != null) {

@@ -40,7 +40,7 @@ void loop() {
   PrevLeftDuration = LeftDuration;
   Serial.println(-LeftDuration);
 
-  delay(10);
+  delay(50);
   digitalWrite(ledPin, !digitalRead(ledPin));
 }
 

@@ -8,6 +8,7 @@
 //Libraries
 #include <Arduino.h>
 #include "ICM_20948.h"
+#include <string>
 
 
 //Definitions
@@ -24,7 +25,8 @@ ICM_20948_I2C myICM;
 //Function Declarations 
 void motor_drive();
 void establishContact();
-
+void motor_stop();
+String getValue(String data, char separator, int index);
 
 //Variables
 const int ledPin = 13;
@@ -35,9 +37,12 @@ unsigned long CurrentMillis = 0;
 unsigned long PreviousMillis = 0;
 byte analogPin = 0;
 boolean ledState = LOW; //toggle LED
-char val; 
+String val; 
 int current_direction = 7;
+int val1;
 
+String stringPWM [16] = 0;
+int intPWM [16] = {0};
 
 void setup(void) {
   //establishContact();  // establish handshake with device, repeatably send message till response
@@ -69,14 +74,15 @@ void loop() {
   myICM.readDMPdataFromFIFO(&data);
   CurrentMillis = millis();
 
-  if (Serial.available() > 0) {
-    val = Serial.read(); // read it and store it in val
-
-    if(val == '1') //if we get a 1
-    {
-       ledState = !ledState; //flip the ledState
-       digitalWrite(ledPin, ledState); 
-       motor_drive();
+  if (Serial.available()) {
+    
+    val = Serial.readStringUntil('\n'); // read it and store it in val
+    val.trim();
+    
+    for (int i = 0; i < 16; i++){
+      stringPWM[i] = getValue(val, ':', i);
+      intPWM[i] = stringPWM[i].toInt();
+      analogWrite(i, intPWM[i]);
     }
   
   }else { 
@@ -178,17 +184,53 @@ void loop() {
       delay(10);
     }
     
-    
-    analogWrite(10, 0);
-    analogWrite(11, 0);
+    //motor_stop();
   }
 
 }
 
 void motor_drive(){
-  analogWrite(10, 0);
-  analogWrite(11, 80);
   
+  // M1
+  analogWrite(0, 254);
+  analogWrite(1, 0);
+
+  // M2
+  analogWrite(2, 254);
+  analogWrite(3, 0);
+
+  // M3
+  analogWrite(4, 254);
+  analogWrite(5, 0);
+
+  // M4
+  analogWrite(6, 254);
+  analogWrite(7, 0);
+
+  // M5
+  analogWrite(8, 254);
+  analogWrite(9, 0);
+
+  // M6
+  analogWrite(10, 254);
+  analogWrite(11, 0);
+  
+}
+
+String getValue(String data, char separator, int index)
+{
+    int found = 0;
+    int strIndex[] = { 0, -1 };
+    int maxIndex = data.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
 void establishContact() {

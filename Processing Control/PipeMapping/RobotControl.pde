@@ -1,3 +1,5 @@
+// Robot Control Code is by Nicholas Castledine
+
 import processing.serial.*;
 
 import net.java.games.input.*;
@@ -12,7 +14,7 @@ import controlP5.*;
 ControlDevice cont;
 ControlIO control;
 
-Arduino arduino1;
+//Arduino arduino1;
 
 // GUI item setups
 ControlP5 cp5;
@@ -67,14 +69,15 @@ int m7bpin = 13;//A5;
 int m8apin = 14;//A8;
 int m8bpin = 15;//A9;
 
-int m1pwm1;
-int m1pwm2;
-int m1pwm3;
-int m1pwm4;
-int m1pwm5;
-int m1pwm6;
-int m1pwm7;
-int m1pwm8;
+String[] pwm_data = {"0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"};
+int m1pwm1 = 0;
+int m1pwm2 = 0;
+int m1pwm3 = 0;
+int m1pwm4 = 0;
+int m1pwm5 = 0;
+int m1pwm6 = 0;
+int m1pwm7 = 0;
+int m1pwm8 = 0;
 
 int m2pwm1;
 int m2pwm2;
@@ -157,7 +160,7 @@ int ret_switch = 0;
 boolean ret_adv = false;
 //0 = m1f, 1 = m1r, 2 = m2f, 3 = m2r
 
-/*
+
 void control_init() {
  
   cp5 = new ControlP5(this);
@@ -170,19 +173,20 @@ void control_init() {
     println("not working");
     System.exit(-1);
   }
-  
-  println(Arduino.list());
-  delay(500);
-  try{
-  arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
+
+  // Old firmata code
+  //println(Arduino.list());
+  //delay(500);
+  //try{
+  //arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
   //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
-  }
-  catch (Exception e){
-    e.printStackTrace();
-    exit();
+  //}
+  //catch (Exception e){
+   // e.printStackTrace();
+    //exit();
     
     
-  }
+  //}
   
   
   //GUI
@@ -510,25 +514,7 @@ void control_hud_draw(){
   
  stick1.setValue(front_pitch_x,front_pitch_y);
  stick2.setValue(rear_pitch_x,rear_pitch_y);
- split_data[1] = "0";
-  if (front_pitch_x <= -200){
-      split_data[2] = "50";
-      
-  }else if (front_pitch_x >= 200){
-      split_data[2] = "-50";
-  }
-  //middle 
-  else if (front_pitch_x < 200 && front_pitch_x >-200){
-      split_data[2] = "0";
-      if (front_pitch_y >= 150){
-      split_data[1] = "-55";
-      }else if (front_pitch_y <= -200){
-      split_data[1] = "55";
-      }
-  }else {
-    split_data[2] = "0";
-    split_data[1] = "0";
-  }
+
   
 
   
@@ -684,23 +670,22 @@ void control_hud_draw(){
    s1_butt.setColorBackground(#3A54B4);
    s1_butt.setColorLabel(255);
    sub_state=0; //substate 0 only possible in state 0
-   //split_data[1] = "51";
 
  
  }else{
    s1_butt.setColorBackground(color(128,128,110));
    s1_butt.setColorLabel(255);
-   //split_data[1] = "0";
+
  }
  if(state==1){
    s2_butt.setColorBackground(#3A54B4);
    s2_butt.setColorLabel(255);
-   //split_data[2] = "-51";
+ 
  }
  else{
    s2_butt.setColorBackground(color(128,128,110));
    s2_butt.setColorLabel(255);
-   //split_data[2] = "0";
+   
  }
  if(state==2){
    s3_butt.setColorBackground(#3A54B4);
@@ -1106,101 +1091,134 @@ if(man_override==true){ //check for manual override
   
 }
 
- 
  // motor speed controls module 1
 if (m1pwm1 > 0) { // motor 1
     //println(pwm1);
-    arduino1.analogWrite(m1apin, 0);
-    arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
+    //arduino1.analogWrite(m1apin, 0);
+    //arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
+    pwm_data[0] = "0";
+    pwm_data[1] = str(m1pwm1);
     
   }
   else {
-    arduino1.analogWrite(m1apin, abs(m1pwm1));
-    arduino1.analogWrite(m1bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m1apin, abs(m1pwm1));
+    //arduino1.analogWrite(m1bpin, 0);//Sets speed variable via PWM
+    pwm_data[0] = str(abs(m1pwm1));
+    pwm_data[1] = "0";
+    
   }
-  
 if (m1pwm2 > 0) { // motor 2
 //    Serial.print(out);
-    arduino1.analogWrite(m2apin, 0);
-    arduino1.analogWrite(m2bpin, m1pwm2);//Sets speed variable via PWM
+    //arduino1.analogWrite(m2apin, 0);
+    //arduino1.analogWrite(m2bpin, m1pwm2);//Sets speed variable via PWM
+    pwm_data[2] = "0";
+    pwm_data[3] = str(m1pwm2);
+    //println(pwm_data[3]);
   }
   else {
-    arduino1.analogWrite(m2apin, abs(m1pwm2));
-    arduino1.analogWrite(m2bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m2apin, abs(m1pwm2));
+    //arduino1.analogWrite(m2bpin, 0);//Sets speed variable via PWM
+    pwm_data[2] = str(abs(m1pwm2));
+    pwm_data[3] = "0";
+    //println(pwm_data[2]);
   }
 
 if (m1pwm3 > 0) { // motor 3
 //    Serial.print(out);
-    arduino1.analogWrite(m3apin, 0);
-    arduino1.analogWrite(m3bpin, m1pwm3);//Sets speed variable via PWM
+    //arduino1.analogWrite(m3apin, 0);
+    //arduino1.analogWrite(m3bpin, m1pwm3);//Sets speed variable via PWM
+    pwm_data[4] = "0";
+    pwm_data[5] = str(m1pwm3);
   }
   else {
-    arduino1.analogWrite(m3apin, abs(m1pwm3));
-    arduino1.analogWrite(m3bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m3apin, abs(m1pwm3));
+    //arduino1.analogWrite(m3bpin, 0);//Sets speed variable via PWM
+    pwm_data[4] = str(abs(m1pwm3));
+    pwm_data[5] = "0";
   }
 
 if (m1pwm4 > 0) { // motor 4
 //    Serial.print(out);
-    arduino1.analogWrite(m4apin, m1pwm4);
-    arduino1.analogWrite(m4bpin, 0);//Sets speed variable via PWM
-    if(m1pwm4 >= 253){
-      split_data[3] = "1";
-    }else {
-      split_data[3] = "0";
-    }
-
+    //arduino1.analogWrite(m4apin, m1pwm4);
+    //arduino1.analogWrite(m4bpin, 0);//Sets speed variable via PWM
+    pwm_data[6] = "0";
+    pwm_data[7] = str(m1pwm4);
   }
   else {
-    arduino1.analogWrite(m4apin, 0);
-    arduino1.analogWrite(m4bpin, abs(m1pwm4));//Sets speed variable via PWM
-    if(m1pwm4 <= -253){
-      split_data[3] = "1";
-      split_data[2] = "-140";
-    }else {
-      split_data[3] = "0";
-    }
+   // arduino1.analogWrite(m4apin, 0);
+    //arduino1.analogWrite(m4bpin, abs(m1pwm4));//Sets speed variable via PWM
+    pwm_data[6] = str(abs(m1pwm4));
+    pwm_data[7] = "0";
   }
   
   if (m1pwm5 > 0) { // motor 5
 //    Serial.print(out);
-    arduino1.analogWrite(m5apin, m1pwm5);
-    arduino1.analogWrite(m5bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m5apin, m1pwm5);
+    //arduino1.analogWrite(m5bpin, 0);//Sets speed variable via PWM
+    pwm_data[8] = "0";
+    pwm_data[9] = str(m1pwm5);
   }
   else {
-    arduino1.analogWrite(m5apin, 0);
-    arduino1.analogWrite(m5bpin, abs(m1pwm5));//Sets speed variable via PWM
+    //arduino1.analogWrite(m5apin, 0);
+    //arduino1.analogWrite(m5bpin, abs(m1pwm5));//Sets speed variable via PWM
+    pwm_data[8] = str(abs(m1pwm5));
+    pwm_data[9] = "0";
   }
   
   if (m1pwm6 > 0) { // motor 6
 //    Serial.print(out);
-    arduino1.analogWrite(m6apin, m1pwm6);
-    arduino1.analogWrite(m6bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m6apin, m1pwm6);
+    //arduino1.analogWrite(m6bpin, 0);//Sets speed variable via PWM
+    pwm_data[10] = "0";
+    pwm_data[11] = str(m1pwm6);
   }
   else {
-    arduino1.analogWrite(m6apin, 0);
-    arduino1.analogWrite(m6bpin, abs(m1pwm6));//Sets speed variable via PWM
+    //arduino1.analogWrite(m6apin, 0);
+    //arduino1.analogWrite(m6bpin, abs(m1pwm6));//Sets speed variable via PWM
+    pwm_data[10] = str(abs(m1pwm6));
+    pwm_data[11] = "0";
   }
   
   if (m1pwm7 > 0) { // motor 7
 //println(pwm7);
-    arduino1.analogWrite(m7apin, m1pwm7);
-    arduino1.analogWrite(m7bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m7apin, m1pwm7);
+    //arduino1.analogWrite(m7bpin, 0);//Sets speed variable via PWM
+    pwm_data[12] = "0";
+    pwm_data[13] = str(m1pwm7);
   }
   else  {
-    arduino1.analogWrite(m7apin, 0);
-    arduino1.analogWrite(m7bpin, abs(m1pwm7));//Sets speed variable via PWM
+    //arduino1.analogWrite(m7apin, 0);
+    //arduino1.analogWrite(m7bpin, abs(m1pwm7));//Sets speed variable via PWM
+    pwm_data[12] = str(abs(m1pwm7));
+    pwm_data[13] = "0";
   }
   
   if (m1pwm8 > 0) { // motor 8
 //    Serial.print(out);
-    arduino1.analogWrite(m8apin, m1pwm8);
-    arduino1.analogWrite(m8bpin, 0);//Sets speed variable via PWM
+    //arduino1.analogWrite(m8apin, m1pwm8);
+    //arduino1.analogWrite(m8bpin, 0);//Sets speed variable via PWM
+    pwm_data[14] = "0";
+    pwm_data[15] = str(m1pwm8);
   }
   else {
-    arduino1.analogWrite(m8apin, 0);
-    arduino1.analogWrite(m8bpin, abs(m1pwm8));//Sets speed variable via PWM
+    //arduino1.analogWrite(m8apin, 0);
+    //arduino1.analogWrite(m8bpin, abs(m1pwm8));//Sets speed variable via PWM
+    pwm_data[14] = str(abs(m1pwm8));
+    pwm_data[15] = "0";
   }
   
+// Write Motor PWM data to serial port
+
+CurrentMillis = millis();
+if (CurrentMillis - PreviousMillis >= 10) {
+  PreviousMillis = CurrentMillis;  
+  for (int i = 0; i < 16; ++i) {
+    Port.write(pwm_data[i]);
+    Port.write(":");
+  }
+  Port.write("\n");
+}
+
   
  /*
   // motor speed controls module 2
@@ -1285,5 +1303,4 @@ if (m2pwm4 > 0) { // motor 4
   }
     
     */
- 
-//}
+}
