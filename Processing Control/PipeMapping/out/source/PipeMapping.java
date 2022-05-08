@@ -77,6 +77,7 @@ float angle_xy = 0;
 float distance_xy = 0;
 boolean firstContact = true;
 float encoder_counts = 0;
+float previous_counts = 0;
 long CurrentMillis = 0;
 long PreviousMillis = 0;
 
@@ -211,7 +212,7 @@ public void serialEvent(Serial Port) {
     String read_data2 = Encoder.readStringUntil('\n');
     if (read_data2 != null ) {
       encoder_counts = PApplet.parseFloat(read_data2);
-      println(encoder_counts); 
+      println(PApplet.parseFloat(read_data2)); 
     }
 
     String read_data = Port.readStringUntil('\n');
@@ -1615,14 +1616,24 @@ class RobotModel {
       stroke(240,240,240);
 
       // Draw all the previous positions of robot to form a pipe shape
+      int i = 0;
       for (PVector p : positions) {
         translate(p.x, p.y, p.z);
+        if (i%10 == 0){
+          stroke(0,0,0);
+        }else {
+          stroke(240,240,240);
+        }
+
         box(10, 10, 10);
+        i++;
       } 
     }
     
     public void move_robot() {
-      if (encoder_counts > 0 || encoder_counts < 0) {
+
+      if (encoder_counts - previous_counts > 325) {
+        previous_counts = encoder_counts;
         if (PApplet.parseFloat(direction) == 0) {
           positions.add(new PVector(0,0,1));
           z_position++;

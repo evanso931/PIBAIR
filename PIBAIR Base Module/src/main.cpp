@@ -36,9 +36,15 @@ void setup(void) {
 }
 
 void loop() {
-  LeftDuration = LeftDuration - PrevLeftDuration;
-  PrevLeftDuration = LeftDuration;
+  //LeftDuration = LeftDuration - PrevLeftDuration;
+  //PrevLeftDuration = LeftDuration;
+  
   Serial.println(-LeftDuration);
+
+  //if (LeftDuration >= 325){
+    //Serial.println(-LeftDuration);
+    //LeftDuration =0;
+  //}
 
   delay(50);
   digitalWrite(ledPin, !digitalRead(ledPin));

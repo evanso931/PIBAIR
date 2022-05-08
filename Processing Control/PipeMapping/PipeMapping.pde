@@ -41,6 +41,7 @@ float angle_xy = 0;
 float distance_xy = 0;
 boolean firstContact = true;
 float encoder_counts = 0;
+float previous_counts = 0;
 long CurrentMillis = 0;
 long PreviousMillis = 0;
 
@@ -175,7 +176,7 @@ void serialEvent(Serial Port) {
     String read_data2 = Encoder.readStringUntil('\n');
     if (read_data2 != null ) {
       encoder_counts = float(read_data2);
-      println(encoder_counts); 
+      println(float(read_data2)); 
     }
 
     String read_data = Port.readStringUntil('\n');
