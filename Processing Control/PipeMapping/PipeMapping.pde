@@ -56,8 +56,8 @@ void setup() {
   // List all the available serial ports:
   printArray(Serial.list());
   // Select Com Port
-  Port = new Serial(this, Serial.list()[0], 9600); // Make sure there are no serial terminals open
-  Encoder = new Serial(this, Serial.list()[2], 9600); // Might be different if using arduino for 5 v power
+  Port = new Serial(this, Serial.list()[1], 9600); // Make sure there are no serial terminals open
+  Encoder = new Serial(this, Serial.list()[0], 9600); // Might be different if using arduino for 5 v power
 
   // Virtual camera setting 
   cam = new PeasyCam(this, 500); // start zoom

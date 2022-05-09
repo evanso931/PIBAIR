@@ -1,4 +1,4 @@
-// Robot Control Code is by Nicholas Castledine
+// Robot Control Code is originally by Nicholas Castledine, It has now been modified heavily
 
 import processing.serial.*;
 

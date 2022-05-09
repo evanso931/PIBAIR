@@ -23,9 +23,9 @@ ICM_20948_I2C myICM;
 
 
 //Function Declarations 
-void motor_drive();
 void establishContact();
-void motor_stop();
+void initialiseMotors();
+void moveMotors78();
 String getValue(String data, char separator, int index);
 
 //Variables
@@ -41,14 +41,25 @@ String val;
 int current_direction = 7;
 int val1;
 
+// Motor initiialisation
+int apin = 12;
+int bpin = 13;
+int switchPinA = 20;
+int switchPinB = 21;
+int switchInput;
+int readOpen;
+int readClosed;
+int buttonPress;
+int pwm1 = 255;
+
 String stringPWM [16] = 0;
 int intPWM [16] = {0};
 
 void setup(void) {
-  //establishContact();  // establish handshake with device, repeatably send message till response
   SERIAL_PORT.begin(9600);
   pinMode(ledPin, OUTPUT);
-  //pinMode(buttonPin, INPUT);
+  pinMode(switchPinA, INPUT);
+  pinMode(switchPinB, INPUT);
 
   delay(100);
   
@@ -67,7 +78,6 @@ void setup(void) {
 
   establishContact();
 }
-
 
 void loop() {
   icm_20948_DMP_data_t data;
@@ -128,51 +138,29 @@ void loop() {
             }
           } else {
 
-            /* Send IMU and encoder values of serial port
-            SERIAL_PORT.print(roll, 1);
-            SERIAL_PORT.print(" ");
-            SERIAL_PORT.print(pitch, 1);
-            SERIAL_PORT.print(" ");
-            SERIAL_PORT.println(yaw, 1);
-            SERIAL_PORT.println(" ");
-            */
-
             // Down
             if (pitch < - 50) {
-              //if (current_direction != 0){
                 SERIAL_PORT.println(0); 
-                //current_direction = 0;
-              //}
+                
             // Up
             }else if (pitch> 50) {
-              //if (current_direction != 1){
                 SERIAL_PORT.println(1);
-                //current_direction = 1;
-              //}
+
             // Right
             }else if (yaw < - 45 && yaw > - 135) {
-              //if (current_direction != 2){
                 SERIAL_PORT.println(2);
-                //current_direction = 2;
-              //}
+               
             // Left
             }else if (yaw > 45 && yaw < 135) {
-              //if (current_direction != 3){
                 SERIAL_PORT.println(3);
-                //current_direction = 3;
-              //}
+                
             // Backward
-            }else if (yaw > 135 || yaw < - 135) {
-              //if (current_direction != 4){
+            }else if (yaw > 135 || yaw < - 135) {            
                 SERIAL_PORT.println(4);
-                //current_direction = 4;
-              //}
+
             // Forward
             } else if (yaw < 45 && yaw > - 45) {
-              //if (current_direction != 5){
                 SERIAL_PORT.println(5); 
-                //current_direction = 5;
-              //}
             }
           }
         }
@@ -183,38 +171,7 @@ void loop() {
     {
       delay(10);
     }
-    
-    //motor_stop();
   }
-
-}
-
-void motor_drive(){
-  
-  // M1
-  analogWrite(0, 254);
-  analogWrite(1, 0);
-
-  // M2
-  analogWrite(2, 254);
-  analogWrite(3, 0);
-
-  // M3
-  analogWrite(4, 254);
-  analogWrite(5, 0);
-
-  // M4
-  analogWrite(6, 254);
-  analogWrite(7, 0);
-
-  // M5
-  analogWrite(8, 254);
-  analogWrite(9, 0);
-
-  // M6
-  analogWrite(10, 254);
-  analogWrite(11, 0);
-  
 }
 
 String getValue(String data, char separator, int index)
@@ -237,5 +194,148 @@ void establishContact() {
   while (Serial.available() <= 0) {
   Serial.println("A");   // send a capital A
   delay(300);
+  }
+  //initialiseMotors();
+}
+
+
+void initialiseMotors(){
+
+  if (readClosed ==  0 && readOpen == 0) {
+    // if PinA - done
+    // start motor
+    analogWrite(apin, pwm1);
+    analogWrite(bpin, 0); //Sets speed variable via PWM
+
+    // wait for contact 
+    while (readOpen == 0) {
+      readOpen= digitalRead(switchPinA); // pin 20
+       Serial.print("Open = ");
+       Serial.println(readOpen);
+      readClosed= digitalRead(switchPinB); // pin 21
+       Serial.print("Closed = "); 
+       Serial.println(readClosed);
+      if (readClosed == 1) {
+        // stop motor
+         analogWrite(apin, 0);
+         analogWrite(bpin, 0); 
+        break;
+      }
+    }
+     analogWrite(apin, 0);
+     analogWrite(bpin, 0); 
+
+    // if PinB run opposite until PinA
+    if (readClosed ==  1) {
+      // states
+      delay(5);
+       Serial.println("Legs closed");
+       Serial.print("Open = ");
+       Serial.println(readOpen);
+       Serial.print("Closed = "); 
+       Serial.println(readClosed);
+
+      // start motor
+       analogWrite(apin, 0);
+       analogWrite(bpin, pwm1); //Sets speed variable via PWM
+
+      // wait for contact - Want to start open 
+      while (readOpen == 0) {
+        readOpen= digitalRead(switchPinA); // pin 22
+        // Serial.print("Open = "); Serial.println(readOpen);
+      }
+
+      // stop motor
+       analogWrite(apin, 0);
+       analogWrite(bpin, 0);
+    }
+  }
+  if (readClosed ==  1) {
+    // states
+     Serial.println("Legs closed");
+     Serial.print("Open = ");
+     Serial.println(readOpen);
+     Serial.print("Closed = "); 
+     Serial.println(readClosed);
+
+    // start motor
+     analogWrite(apin, pwm1);
+     analogWrite(bpin, 0); //Sets speed variable via PWM
+
+    // wait for contact - Want to start open 
+    while (readOpen == 0) {
+      readOpen= digitalRead(switchPinA); // pin 22
+      // Serial.print("Open = "); Serial.println(readOpen);
+    }
+
+    // stop motor
+     analogWrite(apin, 0);
+     analogWrite(bpin, 0);
+  }
+}
+
+void moveMotors78(){
+  
+  // setup write pin
+   analogWrite(apin, 0);
+   analogWrite(bpin, 0);
+
+  // set up read pins
+  readOpen= digitalRead(switchPinA); // pin 22
+  readClosed= digitalRead(switchPinB); // pin 23
+
+  Serial.print("Button = ");
+  Serial.println(buttonPress);
+
+  // check gates are working
+  //print("Open = ");println(readOpen);
+  //print("Closed = "); println(readClosed);
+
+  if (buttonPress == 1) {
+    if (readClosed == 1) {
+      // states
+       Serial.println("Legs closed");
+       Serial.print("Open = ");
+       Serial.println(readOpen);
+       Serial.print("Closed = "); 
+       Serial.println(readClosed);
+
+      // start motor
+       analogWrite(apin, pwm1);
+       analogWrite(bpin, 0); //Sets speed variable via PWM
+
+      // wait for contact 
+      while (readOpen == 0) {
+        readOpen= digitalRead(switchPinA); // pin 22
+         Serial.print("Open = ");
+         Serial.println(readOpen);
+      }
+
+      // stop motor
+       analogWrite(apin, 0);
+       analogWrite(bpin, 0);
+    }
+    if (readOpen == 1) {
+       Serial.println("Legs Open");
+       Serial.print("Open = "); 
+       Serial.println(readOpen);
+       Serial.print("Closed = ");
+       Serial.println(readClosed);
+
+      // start motor
+       analogWrite(apin, 0);
+       analogWrite(bpin, pwm1); //Sets speed variable via PWM
+
+      // wait for contact 
+      while (readClosed == 0) {
+        readClosed= digitalRead(switchPinB); // pin 22
+         Serial.print("Closed = ");
+         Serial.println(readClosed);
+      }
+
+      // stop motor
+       analogWrite(apin, 0);
+       analogWrite(bpin, 0);
+    }
   }
 }
