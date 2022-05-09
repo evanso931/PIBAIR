@@ -1,3 +1,9 @@
+/** Planes
+ * Class to draw xyz planes in gui
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Dec 2021
+ */ 
+
 class Planes {  
   public
 
@@ -40,5 +46,4 @@ class Planes {
     }
 
   // Variables ----------------------------------------------------
-   
 } 

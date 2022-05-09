@@ -1,4 +1,11 @@
 // Robot Control Code is originally by Nicholas Castledine, It has now been modified heavily
+/** RobotControl
+ * Control code for PIBAIR module, Takes in user input with Xbox control and converts into
+ * for the motors.
+ * Author: Benjamin Evans, University of Leeds
+ * Reference: Robot Control Code is originally by Nicholas Castledine
+ * Date: Dec 2021
+ */ 
 
 import processing.serial.*;
 

@@ -1,28 +1,28 @@
 /** PIBAIR Tether Microcontroller Code
  * Main file for the code that runs on the teency microcontroller that is on the tether up the pipe
- * author Benjamin Evans, University of Leeds
- * date Dec 2021
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Dec 2021
  */ 
 
 
-//Libraries
+// Libraries
 #include <Arduino.h>
 #include "ICM_20948.h"
 #include <string>
 
 
-//Definitions
+// Definitions
 #define SERIAL_PORT Serial
 #define WIRE_PORT Wire 
 #define AD0_VAL 1   
 #define LOOPTIME  10
 
 
-//Object Declarations 
+// Object Declarations 
 ICM_20948_I2C myICM;
 
 
-//Function Declarations 
+// Function Declarations 
 void establishContact();
 void initialiseMotors();
 void moveMotors78();
@@ -40,8 +40,10 @@ boolean ledState = LOW; //toggle LED
 String val; 
 int current_direction = 7;
 int val1;
+String stringPWM [16] = 0;
+int intPWM [16] = {0};
 
-// Motor initiialisation
+// Motor initialisation Variables
 int apin = 12;
 int bpin = 13;
 int switchPinA = 20;
@@ -52,8 +54,6 @@ int readClosed;
 int buttonPress;
 int pwm1 = 255;
 
-String stringPWM [16] = 0;
-int intPWM [16] = {0};
 
 void setup(void) {
   SERIAL_PORT.begin(9600);
@@ -79,11 +79,13 @@ void setup(void) {
   establishContact();
 }
 
+
 void loop() {
   icm_20948_DMP_data_t data;
   myICM.readDMPdataFromFIFO(&data);
   CurrentMillis = millis();
 
+  // Read PWM values from processing 
   if (Serial.available()) {
     
     val = Serial.readStringUntil('\n'); // read it and store it in val
@@ -95,6 +97,7 @@ void loop() {
       analogWrite(i, intPWM[i]);
     }
   
+  // Send IMU direction values to processing 
   }else { 
     if (CurrentMillis - PreviousMillis >= LOOPTIME) {
       PreviousMillis = CurrentMillis;  
@@ -197,7 +200,6 @@ void establishContact() {
   }
   //initialiseMotors();
 }
-
 
 void initialiseMotors(){
 

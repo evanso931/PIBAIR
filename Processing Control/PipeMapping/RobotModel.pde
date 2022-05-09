@@ -1,3 +1,9 @@
+/** RobotModel
+ * Class to draw pipe shape in 3d map
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Dec 2021
+ */ 
+
 class RobotModel {  
   public
     

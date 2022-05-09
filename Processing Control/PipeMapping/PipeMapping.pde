@@ -1,7 +1,7 @@
 /** Pipe Mapping Computer Code
  * Main file for the code that runs on the computer and maps the tethers location using the processing library
- * author Benjamin Evans, University of Leeds
- * date Jan 2021
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Jan 2021
  */ 
 
 
@@ -239,6 +239,8 @@ void fakeData(){
     println(fake_data[i]);
   }
   */
+
+  // Fills array with linear values 
   for(int i = 0; i < 150; i ++){
     fake_data[i] = int(i*1.5);
     println(fake_data[i]);
@@ -250,6 +252,5 @@ void fakeData(){
     fake_data[i] = int(((300-i)*1.5));
     println(fake_data[i]);
   }
-
 }
 

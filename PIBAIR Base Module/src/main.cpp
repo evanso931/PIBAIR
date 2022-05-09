@@ -1,21 +1,16 @@
 /** PIBAIR Base Microcontroller Code
  * Main file for the code that runs on the teency microcontroller in the cable encoder measurement device
- * author Benjamin Evans, University of Leeds
- * date Dec 2021
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Dec 2021
  */ 
 
-//Libraries
+// Libraries
 #include <Arduino.h>
 
-
-//Object Declarations 
-
-
-
-//Function Declarations
+// Function Declarations
 void wheelSpeed();
 
-//Variables
+// Variables
 const int ledPin = 13;
 const byte LeftEncoderpinA = 2;//A pin -> the interrupt pin 0 
 const byte LeftEncoderpinB = 3;//B pin -> the digital pin 4
@@ -36,23 +31,13 @@ void setup(void) {
 }
 
 void loop() {
-  //LeftDuration = LeftDuration - PrevLeftDuration;
-  //PrevLeftDuration = LeftDuration;
-  
   Serial.println(-LeftDuration);
-
-  //if (LeftDuration >= 325){
-    //Serial.println(-LeftDuration);
-    //LeftDuration =0;
-  //}
 
   delay(50);
   digitalWrite(ledPin, !digitalRead(ledPin));
 }
 
-
-void wheelSpeed()
-{
+void wheelSpeed() {
    int Lstate = digitalRead(LeftEncoderpinA);
   if((LeftEncoderPinALast == LOW) && Lstate==HIGH)
   {
