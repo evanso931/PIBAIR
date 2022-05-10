@@ -36,8 +36,8 @@ public class PipeMapping extends PApplet {
 
 /** Pipe Mapping Computer Code
  * Main file for the code that runs on the computer and maps the tethers location using the processing library
- * author Benjamin Evans, University of Leeds
- * date Jan 2021
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Jan 2021
  */ 
 
 
@@ -112,8 +112,8 @@ public void setup() {
   // Setup external endoscope camera
   String[] cameras = Capture.list();
   printArray(cameras);
-  //video = new Capture(this, 550, 413, cameras[0], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
-  //video.start();  
+  video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
+  video.start();  
 
   //RobotControl Setup
   control_init(); 
@@ -138,10 +138,10 @@ public void draw() {
   popMatrix();
 
   // External Endoscope Camera 
-  //if (video.available() == true) {
-   // video.read();
-  //}
-  //image(video, 1350 , 210); //video position
+  if (video.available() == true) {
+    video.read();
+  }
+  image(video, 1350 , 210); //video position
 
   control_hud_draw();
   cam.endHUD();
@@ -275,19 +275,26 @@ public void fakeData(){
     println(fake_data[i]);
   }
   */
+
+  // Fills array with linear values 
   for(int i = 0; i < 150; i ++){
     fake_data[i] = PApplet.parseInt(i*1.5f);
-    println(fake_data[i]);
+    //println(fake_data[i]);
   }
 
   fake_data[150] = 255;
 
   for(int i = 151; i < 300; i ++){
     fake_data[i] = PApplet.parseInt(((300-i)*1.5f));
-    println(fake_data[i]);
+    //println(fake_data[i]);
   }
-
 }
+
+/** Planes
+ * Class to draw xyz planes in gui
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Dec 2021
+ */ 
 
 class Planes {  
   public
@@ -331,9 +338,15 @@ class Planes {
     }
 
   // Variables ----------------------------------------------------
-   
 } 
 // Robot Control Code is originally by Nicholas Castledine, It has now been modified heavily
+/** RobotControl
+ * Control code for PIBAIR module, Takes in user input with Xbox control and converts into
+ * for the motors.
+ * Author: Benjamin Evans, University of Leeds
+ * Reference: Robot Control Code is originally by Nicholas Castledine
+ * Date: Dec 2021
+ */ 
 
 
 
@@ -349,7 +362,7 @@ class Planes {
 ControlDevice cont;
 ControlIO control;
 
-//Arduino arduino1;
+Arduino arduino2;
 
 // GUI item setups
 ControlP5 cp5;
@@ -510,18 +523,16 @@ public void control_init() {
   }
 
   // Old firmata code
-  //println(Arduino.list());
-  //delay(500);
-  //try{
+  println(Arduino.list());
+  delay(500);
+  try{
   //arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
-  //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
-  //}
-  //catch (Exception e){
-   // e.printStackTrace();
-    //exit();
-    
-    
-  //}
+  arduino2 = new Arduino(this, Arduino.list()[2], 9600); // list 2 for windows
+  }
+  catch (Exception e){
+    e.printStackTrace();
+    exit();
+  }
   
   
   //GUI
@@ -1555,7 +1566,7 @@ if (CurrentMillis - PreviousMillis >= 10) {
 }
 
   
- /*
+ 
   // motor speed controls module 2
 if (m2pwm1 > 0) { // motor 1
     //println(pwm1);
@@ -1637,8 +1648,14 @@ if (m2pwm4 > 0) { // motor 4
     arduino2.analogWrite(m8bpin, abs(m2pwm8));//Sets speed variable via PWM
   }
     
-    */
+    
 }
+/** RobotModel
+ * Class to draw pipe shape in 3d map
+ * Author: Benjamin Evans, University of Leeds
+ * Date: Dec 2021
+ */ 
+
 class RobotModel {  
   public
     

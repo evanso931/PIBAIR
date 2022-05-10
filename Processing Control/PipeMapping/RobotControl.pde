@@ -21,7 +21,7 @@ import controlP5.*;
 ControlDevice cont;
 ControlIO control;
 
-//Arduino arduino1;
+Arduino arduino2;
 
 // GUI item setups
 ControlP5 cp5;
@@ -182,18 +182,16 @@ void control_init() {
   }
 
   // Old firmata code
-  //println(Arduino.list());
-  //delay(500);
-  //try{
+  println(Arduino.list());
+  delay(500);
+  try{
   //arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
-  //arduino2 = new Arduino(this, Arduino.list()[1], 57600); // list 2 for windows
-  //}
-  //catch (Exception e){
-   // e.printStackTrace();
-    //exit();
-    
-    
-  //}
+  arduino2 = new Arduino(this, Arduino.list()[2], 9600); // list 2 for windows
+  }
+  catch (Exception e){
+    e.printStackTrace();
+    exit();
+  }
   
   
   //GUI
@@ -1227,7 +1225,7 @@ if (CurrentMillis - PreviousMillis >= 10) {
 }
 
   
- /*
+ 
   // motor speed controls module 2
 if (m2pwm1 > 0) { // motor 1
     //println(pwm1);
@@ -1309,5 +1307,5 @@ if (m2pwm4 > 0) { // motor 4
     arduino2.analogWrite(m8bpin, abs(m2pwm8));//Sets speed variable via PWM
   }
     
-    */
+    
 }
