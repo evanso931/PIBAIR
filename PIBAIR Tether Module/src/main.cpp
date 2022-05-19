@@ -1,6 +1,7 @@
 /** PIBAIR Tether Microcontroller Code
  * Main file for the code that runs on the teency microcontroller that is on the tether up the pipe
  * Author: Benjamin Evans, University of Leeds
+ * Reference: IMU reading code from https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary
  * Date: Dec 2021
  */ 
 

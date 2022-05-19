@@ -110,10 +110,10 @@ public void setup() {
   planes = new Planes();
 
   // Setup external endoscope camera
-  String[] cameras = Capture.list();
-  printArray(cameras);
-  video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
-  video.start();  
+  //String[] cameras = Capture.list();
+  //printArray(cameras);
+  //video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
+  //video.start();  
 
   //RobotControl Setup
   control_init(); 
@@ -138,10 +138,10 @@ public void draw() {
   popMatrix();
 
   // External Endoscope Camera 
-  if (video.available() == true) {
-    video.read();
-  }
-  image(video, 1350 , 210); //video position
+  //if (video.available() == true) {
+    //video.read();
+  //}
+  //image(video, 1350 , 210); //video position
 
   control_hud_draw();
   cam.endHUD();
@@ -527,7 +527,7 @@ public void control_init() {
   delay(500);
   try{
   //arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
-  arduino2 = new Arduino(this, Arduino.list()[2], 9600); // list 2 for windows
+  //arduino2 = new Arduino(this, Arduino.list()[2], 9600); // list 2 for windows
   }
   catch (Exception e){
     e.printStackTrace();
@@ -1442,15 +1442,15 @@ if (m1pwm1 > 0) { // motor 1
     //println(pwm1);
     //arduino1.analogWrite(m1apin, 0);
     //arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
-    pwm_data[0] = "0";
-    pwm_data[1] = str(m1pwm1);
+    pwm_data[0] = str(m1pwm1);
+    pwm_data[1] = "0";
     
   }
   else {
     //arduino1.analogWrite(m1apin, abs(m1pwm1));
     //arduino1.analogWrite(m1bpin, 0);//Sets speed variable via PWM
-    pwm_data[0] = str(abs(m1pwm1));
-    pwm_data[1] = "0";
+    pwm_data[0] = "0";
+    pwm_data[1] = str(abs(m1pwm1));
     
   }
 if (m1pwm2 > 0) { // motor 2
@@ -1566,7 +1566,7 @@ if (CurrentMillis - PreviousMillis >= 10) {
 }
 
   
- 
+ /*
   // motor speed controls module 2
 if (m2pwm1 > 0) { // motor 1
     //println(pwm1);
@@ -1648,7 +1648,7 @@ if (m2pwm4 > 0) { // motor 4
     arduino2.analogWrite(m8bpin, abs(m2pwm8));//Sets speed variable via PWM
   }
     
-    
+  */  
 }
 /** RobotModel
  * Class to draw pipe shape in 3d map
@@ -1686,7 +1686,7 @@ class RobotModel {
     
     public void move_robot() {
 
-      if (encoder_counts - previous_counts > 325) {
+      if (encoder_counts - previous_counts > 294) {
         previous_counts = encoder_counts;
         if (PApplet.parseFloat(direction) == 0) {
           positions.add(new PVector(0,0,1));
@@ -1716,8 +1716,8 @@ class RobotModel {
     //Variables ----------------------------------------------------
     ArrayList<PVector> positions = new ArrayList<PVector>();
     float x_position = 95;
-    float y_position = 95;
-    float z_position = -5; 
+    float y_position = 65;
+    float z_position = -15; 
     
 } 
   public void settings() {  size(1920,1030,OPENGL); }

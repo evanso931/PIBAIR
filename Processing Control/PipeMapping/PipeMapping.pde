@@ -74,10 +74,10 @@ void setup() {
   planes = new Planes();
 
   // Setup external endoscope camera
-  String[] cameras = Capture.list();
-  printArray(cameras);
-  video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
-  video.start();  
+  //String[] cameras = Capture.list();
+  //printArray(cameras);
+  //video = new Capture(this, 550, 413, cameras[1], 30); // Try iether cameras[0] or cameras[1], could be using pc camera
+  //video.start();  
 
   //RobotControl Setup
   control_init(); 
@@ -102,10 +102,10 @@ void draw() {
   popMatrix();
 
   // External Endoscope Camera 
-  if (video.available() == true) {
-    video.read();
-  }
-  image(video, 1350 , 210); //video position
+  //if (video.available() == true) {
+    //video.read();
+  //}
+  //image(video, 1350 , 210); //video position
 
   control_hud_draw();
   cam.endHUD();

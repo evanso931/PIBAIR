@@ -186,7 +186,7 @@ void control_init() {
   delay(500);
   try{
   //arduino1 = new Arduino(this, Arduino.list()[5], 9600); // list 2 for windows
-  arduino2 = new Arduino(this, Arduino.list()[2], 9600); // list 2 for windows
+  //arduino2 = new Arduino(this, Arduino.list()[2], 9600); // list 2 for windows
   }
   catch (Exception e){
     e.printStackTrace();
@@ -1101,15 +1101,15 @@ if (m1pwm1 > 0) { // motor 1
     //println(pwm1);
     //arduino1.analogWrite(m1apin, 0);
     //arduino1.analogWrite(m1bpin, m1pwm1);//Sets speed variable via PWM
-    pwm_data[0] = "0";
-    pwm_data[1] = str(m1pwm1);
+    pwm_data[0] = str(m1pwm1);
+    pwm_data[1] = "0";
     
   }
   else {
     //arduino1.analogWrite(m1apin, abs(m1pwm1));
     //arduino1.analogWrite(m1bpin, 0);//Sets speed variable via PWM
-    pwm_data[0] = str(abs(m1pwm1));
-    pwm_data[1] = "0";
+    pwm_data[0] = "0";
+    pwm_data[1] = str(abs(m1pwm1));
     
   }
 if (m1pwm2 > 0) { // motor 2
@@ -1225,7 +1225,7 @@ if (CurrentMillis - PreviousMillis >= 10) {
 }
 
   
- 
+ /*
   // motor speed controls module 2
 if (m2pwm1 > 0) { // motor 1
     //println(pwm1);
@@ -1307,5 +1307,5 @@ if (m2pwm4 > 0) { // motor 4
     arduino2.analogWrite(m8bpin, abs(m2pwm8));//Sets speed variable via PWM
   }
     
-    
+  */  
 }

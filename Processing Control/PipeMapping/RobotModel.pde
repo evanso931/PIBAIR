@@ -34,7 +34,7 @@ class RobotModel {
     
     void move_robot() {
 
-      if (encoder_counts - previous_counts > 325) {
+      if (encoder_counts - previous_counts > 294) {
         previous_counts = encoder_counts;
         if (float(direction) == 0) {
           positions.add(new PVector(0,0,1));
@@ -64,7 +64,7 @@ class RobotModel {
     //Variables ----------------------------------------------------
     ArrayList<PVector> positions = new ArrayList<PVector>();
     float x_position = 95;
-    float y_position = 95;
-    float z_position = -5; 
+    float y_position = 65;
+    float z_position = -15; 
     
 } 
